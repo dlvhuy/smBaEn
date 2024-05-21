@@ -1,4 +1,6 @@
-﻿using SocialMedia.Models;
+﻿using SocialMedia.Dtos.Requests;
+using SocialMedia.Dtos.Respones;
+using SocialMedia.Models;
 
 namespace SocialMedia.Repositories.Interfaces
 {
@@ -7,10 +9,12 @@ namespace SocialMedia.Repositories.Interfaces
         IEnumerable<CommentPost> GetAllCommentPost();
         CommentPost GetCommentPostById(int id);
 
-        bool CreateCommentPost(CommentPost commentPost);
+        CommentPostResponse CreateCommentPost(CommentPostRequest commentPostRequest,int IdUser);
 
         bool UpdateCommentPost(int id ,CommentPost commentPost);
 
         bool DeleteCommentPost(int id);
+
+        IEnumerable<CommentPostResponse> GetCommentsPostInPost(int idPost);
     }
 }

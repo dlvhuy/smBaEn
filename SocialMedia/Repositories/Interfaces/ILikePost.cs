@@ -1,15 +1,18 @@
-﻿using SocialMedia.Models;
+﻿using SocialMedia.Dtos.Respones;
+using SocialMedia.Models;
 
 namespace SocialMedia.Repositories.Interfaces
 {
     public interface ILikePost : IDisposable
     {
-        IEnumerable<LikePost> GetTotalLikesInPost(int idPost);
+        MainResponse GetTotalLikesInPost(int idPost);
 
-        int GetTotalNumberLikesInPost(int  postId);
+        int GetTotalNumberLikesInPost(int postId);
 
-        bool AddLikePost(LikePost likePost);
+        LikePostResponse AddLikePost(LikePost AddLikePost);
 
-        bool DeleteLikePost (LikePost likePost);
+        LikePostResponse DeleteLikePost (int idPost,int idUser);
+
+        bool GetIsUserLikePost(int idPost,int userId);
     }
 }

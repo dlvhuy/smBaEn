@@ -1,13 +1,15 @@
 ﻿using SocialMedia.Dtos.Requests;
+using SocialMedia.Dtos.Respones;
+using SocialMedia.Helper.Enums;
 using SocialMedia.Models;
 
 namespace SocialMedia.Repositories.Interfaces
 {
     public interface IRegister_SignIn: IDisposable
     {
-        bool Register(SignUpRequest signUpRequest);
+        SignUpResponse Register(SignUpRequest signUpRequest);
 
-        InfoUser SignIn (SignInRequest signUpRequest);
+        ResonseLogin SignIn (SignInRequest signUpRequest);
 
 
     }

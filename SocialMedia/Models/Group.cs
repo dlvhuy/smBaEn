@@ -14,6 +14,8 @@ namespace SocialMedia.Models
         public string GroupName { get; set; } = null!;
         public string? GroupAvatar { get; set; }
         public int IdUser { get; set; }
+        
+        public string CoverImage { get; set; }
 
         public virtual ICollection<Post> Posts { get; set; }
     }

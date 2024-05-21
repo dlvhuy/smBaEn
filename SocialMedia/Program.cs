@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -7,6 +8,7 @@ using SocialMedia.Helper.Interfaces;
 using SocialMedia.Hubs.ImplementHubs;
 
 using SocialMedia.Models;
+using SocialMedia.Profiles;
 using SocialMedia.Repositories.Implementations;
 using SocialMedia.Repositories.Interfaces;
 using System.Runtime;
@@ -19,16 +21,18 @@ namespace SocialMedia
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            var env = builder.Environment;
             // Add services to the container.
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
             builder.Services.AddDbContext<SociaMediaContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("databaseConnection")));
             builder.Services.AddSignalR();
+            ///https://www.youtube.com/watch?v=mpBPXl7dFgA automapper advanced
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             //database
             builder.Services.AddScoped<ICommentPost,CommentPostRepostitory>();
             builder.Services.AddScoped<IGroup,GroupRepository>();
@@ -43,11 +47,11 @@ namespace SocialMedia
             builder.Services.AddScoped<IManageImage, ManageImage>();
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-
+            //automapper
+          
             //hubs
 
-            
-            
+
 
             var SecretKey = builder.Configuration["AppSetting:SecretKey"];
             var SecretKeyBytes = Encoding.UTF8.GetBytes(SecretKey);
@@ -86,21 +90,25 @@ namespace SocialMedia
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            app.UseRouting();
 
-           
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath,"Image")),
+                RequestPath = "/Image"
+            });
 
 
             app.UseHttpsRedirection();
 
-            app.UseEndpoints(endpoints => {
-                endpoints.MapControllers();
-                endpoints.MapHub<PostHub>("post-hub");
-            });
+            app.UseRouting();
 
             app.UseAuthentication();
 
             app.UseAuthorization();
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+                endpoints.MapHub<PostHub>("post-hub");
+            });
 
             app.MapControllers();
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using SocialMedia.Repositories.Interfaces;
 
 namespace SocialMedia.Models
 {
@@ -37,7 +38,7 @@ namespace SocialMedia.Models
         {
             modelBuilder.Entity<CommentPost>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => e.IdCommentPost);
 
                 entity.Property(e => e.ContentCommentPost).HasMaxLength(300);
 
@@ -85,6 +86,14 @@ namespace SocialMedia.Models
                     .HasMaxLength(10)
                     .IsUnicode(false);
 
+                entity.Property(e => e.AvatarImage)
+                   .HasMaxLength(200)
+                   .IsUnicode(false);
+
+                entity.Property(e => e.CoverImage)
+                   .HasMaxLength(200)
+                   .IsUnicode(false);
+
                 entity.Property(e => e.UserDescription).HasMaxLength(500);
 
                 entity.Property(e => e.UserName).HasMaxLength(200);
@@ -92,7 +101,9 @@ namespace SocialMedia.Models
 
             modelBuilder.Entity<LikePost>(entity =>
             {
-                entity.HasNoKey();
+                
+                entity.HasKey(e => e.IdLikePost);
+                
 
                 entity.HasOne(d => d.IdPostNavigation)
                     .WithMany()
@@ -109,7 +120,8 @@ namespace SocialMedia.Models
 
             modelBuilder.Entity<MemberGroup>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => e.IdMemberGroup);
+                
 
                 entity.HasOne(d => d.IdGroupNavigation)
                     .WithMany()

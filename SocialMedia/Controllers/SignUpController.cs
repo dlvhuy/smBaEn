@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using SocialMedia.Dtos.Requests;
+using SocialMedia.Dtos.Respones;
+using SocialMedia.Helper.Implements;
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Implementations;
@@ -12,7 +15,7 @@ using SocialMedia.Repositories.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-
+using SocialMedia.Helper.Enums;
 namespace SocialMedia.Controllers
 {
     [Route("api/[controller]")]
@@ -20,12 +23,8 @@ namespace SocialMedia.Controllers
     public class SignUpController : ControllerBase
     {
         private readonly IRegister_SignIn _register_SignIn;
-        private readonly IConfiguration _configuration;
-        private readonly IToken _tokenFromUser;
-        public SignUpController(IRegister_SignIn register_SignIn,IConfiguration configuration, IToken tokenFromUser) {
+        public SignUpController(IRegister_SignIn register_SignIn) {
             _register_SignIn = register_SignIn;
-            _configuration = configuration;
-            _tokenFromUser = tokenFromUser;
         }
 
         [HttpPost]
@@ -35,9 +34,12 @@ namespace SocialMedia.Controllers
             try {
                 if(signUpRequest == null) return BadRequest("Null Error");
 
+                SignUpResponse status = _register_SignIn.Register(signUpRequest);
+                if(!status.success)
+                    return BadRequest(status);
                 
-                _register_SignIn.Register(signUpRequest);
-                return Ok("succsess");
+                return Ok(status);
+                
 
             }
             catch { return BadRequest("Error "); }
@@ -51,14 +53,10 @@ namespace SocialMedia.Controllers
             {
                 if (signInRequest == null) return BadRequest("Null Error");
 
-                InfoUser CheckUser = _register_SignIn.SignIn(signInRequest);
-                if (CheckUser == null) return BadRequest("SignIn Error");
+                ResonseLogin CheckUser = _register_SignIn.SignIn(signInRequest);
+                if (!CheckUser.success) return BadRequest(CheckUser);
+                return Ok(CheckUser);
 
-                string token = _tokenFromUser.createTokenFormUser(CheckUser);
-
-                InfoUser user = _tokenFromUser.getUserFromToken(token);
-
-                return Ok(user.UserName);
 
             }
             catch { return BadRequest("Error"); }

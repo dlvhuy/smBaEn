@@ -1,4 +1,5 @@
-﻿using SocialMedia.Models;
+﻿using SocialMedia.Dtos.Respones;
+using SocialMedia.Models;
 
 namespace SocialMedia.Repositories.Interfaces
 {
@@ -13,5 +14,11 @@ namespace SocialMedia.Repositories.Interfaces
         bool UpdateUser(InfoUser user);
 
         bool DeleteUser(int id);
+
+        InfoUserResponse GetInfomationInUser(int idUser,int LoginUserId);
+
+        IEnumerable<ItemSearchUser> SearchUser(string searchString, InfoUser CurrentUser);
+
+
     }
 }

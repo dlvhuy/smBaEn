@@ -1,33 +1,90 @@
-﻿using SocialMedia.Models;
+﻿using Microsoft.Extensions.Hosting;
+using SocialMedia.Dtos.Requests;
+using SocialMedia.Dtos.Respones;
+using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
 
 namespace SocialMedia.Repositories.Implementations
 {
     public class LikePostRepository : ILikePost
     {
-        public bool AddLikePost(LikePost likePost)
+        private readonly SociaMediaContext _dbContext;
+
+        
+        public LikePostRepository(SociaMediaContext dbContext) {
+            _dbContext = dbContext;
+        }
+        public LikePostResponse AddLikePost(LikePost AddLikePost)
         {
-            throw new NotImplementedException();
+            try
+            {
+
+                
+                _dbContext.LikePosts.Add(AddLikePost);
+                _dbContext.SaveChanges();
+
+                LikePostResponse likePostResponse = new LikePostResponse()
+                {
+                    isLike = GetIsUserLikePost(AddLikePost.IdPost, AddLikePost.IdUser),
+                    TotalLikes = GetTotalNumberLikesInPost(AddLikePost.IdPost)
+                };
+                return likePostResponse; 
+
+            }catch (Exception ex)
+            {
+                return null;
+            }
         }
 
-        public bool DeleteLikePost(LikePost likePost)
+        public LikePostResponse DeleteLikePost(int idPost,int idUser)
         {
-            throw new NotImplementedException();
+            try
+            {
+                LikePost likePostDelete = _dbContext.LikePosts.Where(likePost => likePost.IdPost == idPost && likePost.IdUser == idUser).FirstOrDefault();
+                _dbContext.LikePosts.Remove(likePostDelete);
+                _dbContext.SaveChanges();
+
+                LikePostResponse likePostResponse = new LikePostResponse()
+                {
+                    isLike = GetIsUserLikePost(likePostDelete.IdPost, likePostDelete.IdUser),
+                    TotalLikes = GetTotalNumberLikesInPost(likePostDelete.IdPost)
+                };
+                return likePostResponse;
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            try { }
+            catch { }
         }
 
-        public IEnumerable<LikePost> GetTotalLikesInPost(int idPost)
+        public bool GetIsUserLikePost(int idPost, int userId)
         {
+            bool isUserLikePost = _dbContext.LikePosts.Where(post => post.IdPost ==  idPost && post.IdUser == userId).Any();
+            return isUserLikePost;
+        }
+
+        public MainResponse GetTotalLikesInPost(int idPost)
+        {
+            
             throw new NotImplementedException();
         }
 
         public int GetTotalNumberLikesInPost(int postId)
         {
-            throw new NotImplementedException();
+            int TotalLikesInPost = _dbContext.LikePosts.Where(post => post.IdPost == postId).Count();
+            if(TotalLikesInPost > 0)
+            {
+                return TotalLikesInPost;
+            }
+            return 0;
+            
         }
     }
 }

@@ -6,12 +6,21 @@ using SocialMedia.Dtos.Requests;
 using SocialMedia.Dtos.Respones;
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Hubs.ImplementHubs;
-
+using System.Security.Claims;
+using System.Threading.Tasks;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
 
 namespace SocialMedia.Controllers
-{
+{   // thêm tính năng hình ảnh 
+    // thêm bạn bè , gợi ý bạn bè 
+    //thêm tính năng nhóm
+    // thêm redis
+    // học thêm về thuật toán
+    // học thêm về system design
+    // redesgin app mobileh
+    //elasticSearch cho SignUPCOntroller
+
     [Route("api/[controller]")]
     [ApiController]
     public class PostController : ControllerBase
@@ -19,36 +28,14 @@ namespace SocialMedia.Controllers
         private readonly IPost _post;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IToken _token;
-        private readonly IHubContext<PostHub> _hubContext;
-        public PostController(IHubContext<PostHub> hubContext, IPost post,IHttpContextAccessor httpContextAccessor,IToken token)
+        private readonly ILikePost _likepost;
+        public PostController(ILikePost likepost, IHubContext<PostHub> hubContext, IPost post, IHttpContextAccessor httpContextAccessor, IToken token)
         {
+            _likepost = likepost;
             _post = post;
             _httpContextAccessor = httpContextAccessor;
             _token = token;
-            _hubContext = hubContext;
-        }
-
-        [HttpPost]
-        [Authorize]
-        public IActionResult AddPost(CreatePostRequest createPostRequest)
-        {
-            try
-            {
-                if (createPostRequest == null) return BadRequest("Null Error");
-
-                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-
-                InfoUser user = _token.getUserFromToken(token);
-
-                if (user == null) return BadRequest("Null Error");
-
-                if (!_post.AddPost(user.IdUser, createPostRequest)) return BadRequest("Error");
-
-                return Ok("success");
-                
-
-            }
-            catch { return BadRequest("Error"); }
+            
         }
 
         [HttpDelete]
@@ -67,33 +54,18 @@ namespace SocialMedia.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public IActionResult GetPosts() {
             try
             {
-                List<PostResponse> postResponse = new List<PostResponse>();
+                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"]; 
+                int UserId = _token.getUserFromToken(token).IdUser;
+                var listPost = _post.GetAllPosts();
 
-                PostResponse postResponse1 = new PostResponse();
-                postResponse1.IdGroup = 1;
-                postResponse1.IdPost = 1;
-                postResponse1.IdUser = 1;
-
-                PostResponse postResponse2 = new PostResponse();
-                postResponse1.IdGroup = 2;
-                postResponse1.IdPost = 2;
-                postResponse1.IdUser = 2;
-
-                PostResponse postResponse3 = new PostResponse();
-                postResponse1.IdGroup = 3;
-                postResponse1.IdPost = 3;
-                postResponse1.IdUser = 3;
-
-                postResponse.Add(postResponse1);
-                postResponse.Add(postResponse2);
-                postResponse.Add(postResponse3);
-
-                
-
-                return Ok("success");
+                foreach(var post in listPost) {
+                    post.LikePost.isLike = _likepost.GetIsUserLikePost(post.IdPost, UserId);
+                }
+                return Ok(listPost);
             }
             catch (Exception ex) { return BadRequest(ex); }
         }

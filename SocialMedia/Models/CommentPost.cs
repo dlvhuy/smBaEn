@@ -5,6 +5,7 @@ namespace SocialMedia.Models
 {
     public partial class CommentPost
     {
+        public int IdCommentPost {  get; set; }
         public int IdPost { get; set; }
         public int IdUser { get; set; }
         public string ContentCommentPost { get; set; } = null!;

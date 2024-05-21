@@ -9,6 +9,11 @@ namespace SocialMedia.Profiles
     public class PostContentProfile : Profile
     {
         private readonly IManageImage _image;
+        public PostContentProfile(IManageImage image)
+        {
+            _image = image;
+        }
+
         public PostContentProfile()
         {
             CreateMap<PostContentRequest, PostContent>()

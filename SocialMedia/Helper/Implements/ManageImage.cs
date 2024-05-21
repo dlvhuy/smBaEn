@@ -16,7 +16,28 @@ namespace SocialMedia.Helper.Implements
 
         public string ChangeNameFileToURL(string imageName)
         {
-            return String.Format("{0}://{1}{2}/Image", _httpContextAccessor.HttpContext.Request.Scheme, _httpContextAccessor.HttpContext.Request.Host, _httpContextAccessor.HttpContext.Request.PathBase, imageName);
+            return String.Format("{0}://{1}{2}/Image/", _httpContextAccessor.HttpContext.Request.Scheme, _httpContextAccessor.HttpContext.Request.Host, _httpContextAccessor.HttpContext.Request.PathBase, imageName);
+        }
+
+        public string GetDefaultAvatarImage()
+        {
+          
+            return "Image/Default_AvatarImage.jpg";
+        }
+
+        public string GetDefaultCoverImage()
+        {
+           
+            return "Image/Default_Image.jp";
+        }
+        public string SetDefaultCoverImage()
+        {
+            return String.Format("{0}://{1}{2}/Image/Default_Image.jpg", _httpContextAccessor.HttpContext.Request.Scheme, _httpContextAccessor.HttpContext.Request.Host, _httpContextAccessor.HttpContext.Request.PathBase);
+        }
+
+        public string SetDefaultAvatarImage()
+        {
+            return String.Format("{0}://{1}{2}/Image/Default_AvatarImage.jpg", _httpContextAccessor.HttpContext.Request.Scheme, _httpContextAccessor.HttpContext.Request.Host, _httpContextAccessor.HttpContext.Request.PathBase);
         }
 
         public void DeleteImage(string imageName)
@@ -41,5 +62,6 @@ namespace SocialMedia.Helper.Implements
 
             return imageName;
         }
+
     }
 }

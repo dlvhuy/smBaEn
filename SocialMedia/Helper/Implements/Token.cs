@@ -50,9 +50,13 @@ namespace SocialMedia.Helper.Implements
         public InfoUser getUserFromToken(string Token)
         {
             if (Token == null) return null;
+            if (Token.Contains("Bearer"))
+            {
+                string[] TokenWithOutBearerString = Token.Split(" ");
+                Token = TokenWithOutBearerString[1];
+            }
 
-            
-                var handler = new JwtSecurityTokenHandler();
+            var handler = new JwtSecurityTokenHandler();
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,

@@ -5,6 +5,7 @@ namespace SocialMedia.Models
 {
     public partial class MemberGroup
     {
+        public int IdMemberGroup { get; set; }
         public int IdGroup { get; set; }
         public int IdUser { get; set; }
 

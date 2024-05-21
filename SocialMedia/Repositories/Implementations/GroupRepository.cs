@@ -1,10 +1,14 @@
-﻿using SocialMedia.Models;
+﻿using AutoMapper;
+using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
 
 namespace SocialMedia.Repositories.Implementations
 {
     public class GroupRepository : IGroup
     {
+        private readonly SociaMediaContext _dbontext;
+        private readonly IMapper _mapper;
+        public GroupRepository() { }
         public bool CreateGroup(Group group)
         {
             throw new NotImplementedException();
@@ -17,7 +21,8 @@ namespace SocialMedia.Repositories.Implementations
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            try{ }
+            catch { }
         }
 
         public IEnumerable<Group> GetAllGroups()

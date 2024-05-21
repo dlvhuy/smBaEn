@@ -5,6 +5,7 @@ namespace SocialMedia.Models
 {
     public partial class LikePost
     {
+        public int IdLikePost {  get; set; }
         public int IdPost { get; set; }
         public int IdUser { get; set; }
 

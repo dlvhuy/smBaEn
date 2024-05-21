@@ -1,18 +1,25 @@
 ﻿using AutoMapper;
 using SocialMedia.Dtos.Requests;
+using SocialMedia.Dtos.Respones;
+using SocialMedia.Helper.Enums;
+using SocialMedia.Helper.Interfaces;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
 
 namespace SocialMedia.Repositories.Implementations
 {
     public class Register_SignInRepository : IRegister_SignIn
-    {
+    { 
         private readonly SociaMediaContext _dbcontext;
 
         private readonly IMapper _mapper;
-        public Register_SignInRepository(SociaMediaContext sociaMedia,IMapper mapper) {
+        private readonly IToken _token;
+
+
+        public Register_SignInRepository(IToken token,SociaMediaContext sociaMedia,IMapper mapper) {
             _dbcontext = sociaMedia;
             _mapper = mapper;
+            _token = token;
         }
         public void Dispose()
         {
@@ -23,31 +30,66 @@ namespace SocialMedia.Repositories.Implementations
             catch { return; }
         }
 
-        public bool Register(SignUpRequest signUpRequest)
+        public SignUpResponse Register(SignUpRequest signUpRequest)
         {
-            if (signUpRequest == null) return false;
-                
+            if (_dbcontext.InfoUsers.Where(userInfo => userInfo.EmailUser == signUpRequest.EmailUser).Any())
+                return new SignUpResponse()
+                {
+                    success = false,
+                    message = "Already had EmailUser"
+                };
+
+            if (_dbcontext.InfoUsers.Where(userInfo => userInfo.UserName == signUpRequest.UserName).Any())
+                return new SignUpResponse()
+                {
+                    success = false,
+                    message = "Already had UserName"
+                };
+
             var InfoUser = _mapper.Map<InfoUser>(signUpRequest);
 
-            if(InfoUser == null) return false;  
+            if(InfoUser == null) return new SignUpResponse()
+            {
+                success = false,
+                message = "Other Error"
+            };
 
-           
 
             _dbcontext.InfoUsers.Add(InfoUser);
             _dbcontext.SaveChanges();
 
-            return true;
+            return new SignUpResponse()
+            {
+                success = true,
+                message = "Register success"
+            };
 
         }
 
-        public InfoUser SignIn(SignInRequest signUpRequest)
+        public ResonseLogin SignIn(SignInRequest signUpRequest)
         {
             if( signUpRequest == null) return null;
 
             InfoUser CheckSignUp = _dbcontext.InfoUsers.Where(info => info.EmailUser == signUpRequest.EmailUser && info.PasswordUser == signUpRequest.PasswordUser).FirstOrDefault();
-            if( CheckSignUp == null ) return null;
+            if( CheckSignUp == null )
+                return new ResonseLogin
+            {
+                success = false,
+                idCurrentUser = 0,
+                Token = "",
+                Message = "Lỗi sai Email hoặc mật khẩu"
+            }; ;
 
-            return CheckSignUp;
+            string token = _token.createTokenFormUser(CheckSignUp);
+            int userId = _token.getUserFromToken(token).IdUser;
+
+            return new ResonseLogin
+            {
+                success = true,
+                idCurrentUser = userId,
+                Token = token,
+                Message =""
+            };
 
         }
 

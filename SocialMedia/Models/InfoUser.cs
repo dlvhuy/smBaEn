@@ -16,6 +16,10 @@ namespace SocialMedia.Models
         public string EmailUser { get; set; } = null!;
         public string PasswordUser { get; set; } = null!;
         public string? PhoneNumberUser { get; set; }
+        public string AvatarImage {  get; set; } 
+
+        public string CoverImage { get; set; }
+
 
         public virtual ICollection<Post> Posts { get; set; }
     }

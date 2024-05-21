@@ -1,15 +1,20 @@
 ﻿using SocialMedia.Dtos.Requests;
+using SocialMedia.Dtos.Respones;
 using SocialMedia.Models;
 
 namespace SocialMedia.Repositories.Interfaces
 {
     public interface IPost : IDisposable
     {
-        IEnumerable<Post> GetAllPostInUser(int  userId);
+        IEnumerable<PostResponse> GetAllPostInUser(int  userId);
 
-        IEnumerable<Post> GetAllPostInGroup(int GroupId);
+        IEnumerable<PostResponse> GetAllPostInGroup(int GroupId);
 
-        bool AddPost(int idUser,CreatePostRequest postRequest);
+        IEnumerable<PostResponse> GetAllPosts();
+
+        PostResponse GetPost(int PostId);
+
+        PostResponse AddPost(int idUser,CreatePostRequest postRequest);
 
         bool UpdatePost (int id, CreatePostRequest postRequest);
 
