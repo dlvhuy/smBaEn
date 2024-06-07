@@ -25,6 +25,9 @@ namespace SocialMedia.Models
         public virtual DbSet<Post> Posts { get; set; } = null!;
         public virtual DbSet<PostContent> PostContents { get; set; } = null!;
 
+        public virtual DbSet<Friends> Friends { get; set; } = null!;
+        public virtual DbSet<Notifications> Notifications { get; set; } = null!;
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -34,8 +37,58 @@ namespace SocialMedia.Models
             }
         }
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Friends>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                
+                entity.Property(e => e.Status).HasMaxLength(50);
+
+                entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(d => d.IdUser)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Friends_InfoUser");
+
+                entity.HasOne(e => e.User)
+               .WithMany()
+               .HasForeignKey(d => d.IdFriend)
+               .OnDelete(DeleteBehavior.ClientSetNull)
+               .HasConstraintName("FK_Friends_InfoUser1");
+
+            });
+
+            modelBuilder.Entity<Notifications>(entity => {
+                entity.HasKey(x => x.IdNotification);
+
+                entity.Property(e => e.TypeNotification).HasMaxLength(50);
+
+                entity.Property(e => e.MessageNotification).HasMaxLength(100);
+
+                entity.Property(e => e.StatusNotification).HasMaxLength(50);
+
+                entity.HasOne(e => e.User)
+               .WithMany()
+               .HasForeignKey(d => d.IdUser)
+               .OnDelete(DeleteBehavior.ClientSetNull)
+               .HasConstraintName("FK_Notifications_InfoUser");
+
+                entity.HasOne(e => e.UserRelative)
+               .WithMany()
+               .HasForeignKey(d => d.IdUserRelative)
+               .OnDelete(DeleteBehavior.ClientSetNull)
+               .HasConstraintName("FK_Notifications_InfoUser1");
+
+               entity.HasOne(e => e.Post)
+              .WithMany()
+              .HasForeignKey(d => d.IdItemRelative)
+              .OnDelete(DeleteBehavior.ClientSetNull)
+              .HasConstraintName("FK_Notifications_Post");
+
+            });
+
             modelBuilder.Entity<CommentPost>(entity =>
             {
                 entity.HasKey(e => e.IdCommentPost);
@@ -168,7 +221,7 @@ namespace SocialMedia.Models
                     .HasColumnName("URLImage_video");
 
                 entity.HasOne(d => d.IdPostNavigation)
-                    .WithMany()
+                    .WithMany(d => d.PostImageContents)
                     .HasForeignKey(d => d.IdPost)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_PostContent_Post");

@@ -2,7 +2,7 @@
 {
     public class PostContentRequest
     {
-        public int IdPost { get; set; }
-        public IFormFile UrlimageVideo { get; set; } = null!;
+        public string FileName { get; set; }
+        public string UrlimageVideo { get; set; }
     }
 }

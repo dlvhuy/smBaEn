@@ -14,6 +14,8 @@ namespace SocialMedia.Repositories.Interfaces
 
         PostResponse GetPost(int PostId);
 
+        Post GetPostInPost(int PostId);
+
         PostResponse AddPost(int idUser,CreatePostRequest postRequest);
 
         bool UpdatePost (int id, CreatePostRequest postRequest);

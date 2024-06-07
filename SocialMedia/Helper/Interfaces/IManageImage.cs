@@ -1,8 +1,13 @@
-﻿namespace SocialMedia.Helper.Interfaces
+﻿using SocialMedia.Dtos.Requests;
+using System.Threading.Tasks;
+
+namespace SocialMedia.Helper.Interfaces
 {
     public interface IManageImage
     {
         Task<string> SaveImage(IFormFile file);
+
+        string SaveImage64Base(PostContentRequest postContentRequest);
 
         void DeleteImage(string imageName);
 

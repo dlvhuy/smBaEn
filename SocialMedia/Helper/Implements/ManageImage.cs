@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.Features;
+using SocialMedia.Dtos.Requests;
 using SocialMedia.Helper.Interfaces;
 using System.Net.Http;
 
@@ -16,19 +17,19 @@ namespace SocialMedia.Helper.Implements
 
         public string ChangeNameFileToURL(string imageName)
         {
-            return String.Format("{0}://{1}{2}/Image/", _httpContextAccessor.HttpContext.Request.Scheme, _httpContextAccessor.HttpContext.Request.Host, _httpContextAccessor.HttpContext.Request.PathBase, imageName);
+            return String.Format("{0}://{1}{2}/Image/{3}", _httpContextAccessor.HttpContext.Request.Scheme, _httpContextAccessor.HttpContext.Request.Host, _httpContextAccessor.HttpContext.Request.PathBase, imageName);
         }
 
         public string GetDefaultAvatarImage()
         {
           
-            return "Image/Default_AvatarImage.jpg";
+            return "Default_AvatarImage.jpg";
         }
 
         public string GetDefaultCoverImage()
         {
            
-            return "Image/Default_Image.jp";
+            return "Default_Image.jpg";
         }
         public string SetDefaultCoverImage()
         {
@@ -53,7 +54,7 @@ namespace SocialMedia.Helper.Implements
         {
             string imageName = new string(Path.GetFileNameWithoutExtension(file.FileName).Take(10).ToArray()).Replace(' ', '-');
             imageName = imageName + DateTime.Now.ToString("yymmssfff") + Path.GetExtension(file.FileName);
-            var imagePath = Path.Combine(_env.ContentRootPath, "Image ", imageName);
+            var imagePath = Path.Combine(_env.ContentRootPath, "Image", imageName);
 
             using(var fileStream = new FileStream(imagePath, FileMode.Create))
             {
@@ -62,6 +63,20 @@ namespace SocialMedia.Helper.Implements
 
             return imageName;
         }
+        public string SaveImage64Base(PostContentRequest postContentRequest)
+        {
+            byte[] bytes = Convert.FromBase64String(postContentRequest.UrlimageVideo);
 
+            string imageName = new string(Path.GetFileNameWithoutExtension(postContentRequest.FileName).Take(10).ToArray()).Replace(' ', '-');
+            imageName = imageName + DateTime.Now.ToString("yymmssfff") + Path.GetExtension(postContentRequest.FileName);
+            var imagePath = Path.Combine(_env.ContentRootPath, "Image", imageName);
+
+            using (var fileStream = new FileStream(imagePath, FileMode.Create))
+            {
+                 fileStream.Write(bytes,0,bytes.Length);
+            }
+
+            return imageName;
+        }
     }
 }

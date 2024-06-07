@@ -42,8 +42,8 @@ namespace SocialMedia.Controllers
                 
 
             }
-            catch { return BadRequest("Error "); }
-        
+            catch (Exception ex) { return BadRequest(ex); }
+
         }
         [HttpPost]
         [Route("SignIn")]
@@ -59,7 +59,7 @@ namespace SocialMedia.Controllers
 
 
             }
-            catch { return BadRequest("Error"); }
+            catch(Exception ex) { return BadRequest(ex); }
         }
 
         

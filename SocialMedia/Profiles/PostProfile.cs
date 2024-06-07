@@ -19,12 +19,17 @@ namespace SocialMedia.Profiles
                  .ForMember(dest => dest.IdGroup, src => src.MapFrom(x => x.IdGroup))
                  .ForMember(dest => dest.PostContent, src => src.MapFrom(x => x.PostContent));
 
+
+
+
             CreateMap<Post, PostResponse>()
                 .ForMember(dest => dest.IdPost, src => src.MapFrom(x => x.IdPost))
                 .ForMember(dest => dest.IdGroup, src => src.MapFrom(x => x.IdGroup))
                 .ForMember(dest => dest.User, src => src.MapFrom<GetIDToUserInfo>())
                 .ForMember(dest => dest.PostContent, src => src.MapFrom(x => x.PostContent))
-                .ForMember(dest => dest.LikePost, src => src.MapFrom<GetIsUserLikePost>());
+                .ForMember(dest => dest.LikePost, src => src.MapFrom<GetIsUserLikePost>())
+                .ForMember(dest => dest.postContentResponses, src => src.MapFrom<postContentToPostContentResponse>());
+               
                
                 
         }

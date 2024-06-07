@@ -6,7 +6,7 @@ namespace SocialMedia.Repositories.Interfaces
 {
     public interface IPostContent:IDisposable
     {
-        bool AddPostContent(PostContentRequest postContentRequest);
+        List<PostContentResponse> AddPostContent(List<PostContentRequest> postContentRequest,int idPost);
 
         bool DeletePostContent(int idPostContent);
 

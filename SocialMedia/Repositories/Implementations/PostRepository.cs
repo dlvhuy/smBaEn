@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SocialMedia.Dtos.Requests;
 using SocialMedia.Dtos.Respones;
 using SocialMedia.Models;
@@ -11,10 +12,12 @@ namespace SocialMedia.Repositories.Implementations
     {
         private readonly SociaMediaContext _dbContext;
         private readonly IMapper _mapper;
-        public PostRepository(SociaMediaContext dbContext, IMapper mapper)
+        private readonly IPostContent _postContent;
+        public PostRepository(IPostContent postContent,SociaMediaContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
             _mapper = mapper;
+            _postContent = postContent;
         }
         public PostResponse AddPost(int idUser, CreatePostRequest postRequest)
         {
@@ -26,15 +29,16 @@ namespace SocialMedia.Repositories.Implementations
                 _dbContext.Posts.Add(post);
                 _dbContext.SaveChanges();
 
-                return _mapper.Map<PostResponse>(post);
+                var postResponse = _mapper.Map<PostResponse>(post);
+                postResponse.postContentResponses = _postContent.AddPostContent(postRequest.PostContentRequests,post.IdPost);
+
+                return postResponse;
 
             }catch(Exception ex)
             {
                 return null;
             }
         }
-
-
 
         public bool DeletePost(int id)
         {
@@ -63,7 +67,12 @@ namespace SocialMedia.Repositories.Implementations
         public IEnumerable<PostResponse> GetAllPostInUser(int userId)
         {
 
-            IEnumerable<Post> listPost = _dbContext.Posts.Where(posts => posts.IdUser == userId).ToImmutableArray();
+            var listPost = _dbContext.Posts
+                .Include(post => post.PostImageContents)
+                .Where(posts => posts.IdUser == userId)
+                .ToList();
+                
+                
 
             IEnumerable<PostResponse> listPostResponse = _mapper.Map<IEnumerable<PostResponse>>(listPost);
 
@@ -72,7 +81,9 @@ namespace SocialMedia.Repositories.Implementations
 
         public IEnumerable<PostResponse> GetAllPosts()
         {
-            IEnumerable<Post> listPost = _dbContext.Posts.ToImmutableArray();
+            var listPost = _dbContext.Posts
+                .Include(post => post.PostImageContents)
+                 .ToList();
 
             IEnumerable<PostResponse> listPostResponse = _mapper.Map<IEnumerable<PostResponse>>(listPost);
             
@@ -82,7 +93,21 @@ namespace SocialMedia.Repositories.Implementations
 
         public PostResponse GetPost(int PostId)
         {
-            throw new NotImplementedException();
+            var Post = _dbContext.Posts
+                 .Include(post => post.PostImageContents)
+                 .Where(posts => posts.IdPost == PostId).SingleOrDefault();
+
+            PostResponse postResponse = _mapper.Map<PostResponse>(Post);
+            return postResponse;
+        }
+
+        public Post GetPostInPost(int PostId)
+        {
+            var Post = _dbContext.Posts
+                 .Include(post => post.PostImageContents)
+                 .Where(posts => posts.IdPost == PostId).SingleOrDefault();
+
+            return Post;
         }
 
         public bool UpdatePost(int id, CreatePostRequest postRequest)

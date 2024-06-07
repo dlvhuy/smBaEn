@@ -9,6 +9,10 @@
 
         public LikePostResponse LikePost { get; set; }
 
+        public List<PostContentResponse> postContentResponses { get; set; }
+
+        public List<CommentPostResponse> commentPostResponses { get; set; }
+
         //public IEnumerable<PostContentResponse> postContentResponses { get; set; }
     }
 }

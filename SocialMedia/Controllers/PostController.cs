@@ -20,6 +20,9 @@ namespace SocialMedia.Controllers
     // học thêm về system design
     // redesgin app mobileh
     //elasticSearch cho SignUPCOntroller
+    // modular monoliths
+    // avoid n+1
+    //multi tenants (1 tenatls 1 database)
 
     [Route("api/[controller]")]
     [ApiController]
@@ -29,43 +32,86 @@ namespace SocialMedia.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IToken _token;
         private readonly ILikePost _likepost;
+        private readonly IHubContext<PostHub> _hubContext;
         public PostController(ILikePost likepost, IHubContext<PostHub> hubContext, IPost post, IHttpContextAccessor httpContextAccessor, IToken token)
         {
             _likepost = likepost;
             _post = post;
             _httpContextAccessor = httpContextAccessor;
             _token = token;
-            
-        }
+            _hubContext = hubContext;
 
-        [HttpDelete]
-        [Authorize]
-        public IActionResult DeletePost(int idPost)
-        {
-            try
-            {
-                if (idPost == null) return BadRequest("Null Error");
 
-                if (!_post.DeletePost(idPost)) return BadRequest("Error");
-
-                return Ok("Success");
-            }
-            catch { return BadRequest("Error"); }
         }
 
         [HttpGet]
         [Authorize]
+        
         public IActionResult GetPosts() {
             try
             {
-                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"]; 
+                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
                 int UserId = _token.getUserFromToken(token).IdUser;
                 var listPost = _post.GetAllPosts();
 
-                foreach(var post in listPost) {
+                foreach (var post in listPost) {
                     post.LikePost.isLike = _likepost.GetIsUserLikePost(post.IdPost, UserId);
                 }
                 return Ok(listPost);
+            }
+            catch (Exception ex) { return BadRequest(ex); }
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> AddPost(CreatePostRequest createPostRequest)
+        {
+            try
+            {
+                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+                int UserId = _token.getUserFromToken(token).IdUser;
+
+                PostResponse postResponse = _post.AddPost(UserId, createPostRequest);
+
+                if (postResponse != null)
+                {
+                    MainResponse mainResponse = new MainResponse
+                    {
+                        Object = postResponse,
+                        success = true,
+                    };
+                    await _hubContext.Clients.All.SendAsync("ReceiveMessagePost", mainResponse);
+                    return (Ok());
+                }
+                else
+                {
+                    MainResponse mainResponse = new MainResponse
+                    {
+                        Object = null,
+                        success = false,
+                    };
+                    return BadRequest(mainResponse);
+                }
+            }
+            catch (Exception ex) { return BadRequest(ex); }
+        }
+
+        [HttpGet("{idPost}")]
+        [Authorize]
+        public IActionResult GetPost(int idPost)
+        {
+            try
+            {
+                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+                int UserId = _token.getUserFromToken(token).IdUser;
+                PostResponse post = _post.GetPost(idPost);
+                post.LikePost.isLike = _likepost.GetIsUserLikePost(post.IdPost, UserId);
+
+                MainResponse mainResponse = new MainResponse
+                {
+                    Object = post,
+                    success = true,
+                };
+                return Ok(mainResponse);
             }
             catch (Exception ex) { return BadRequest(ex); }
         }

@@ -20,12 +20,12 @@ namespace SocialMedia.Helper.AutoMapperHelper
 
         public string Resolve(InfoUser source, ItemSearchUser destination, string destMember, ResolutionContext context)
         {
-            return _managerImage.SetDefaultAvatarImage();
+            return _managerImage.ChangeNameFileToURL(source.AvatarImage);
         }
 
         public string Resolve(InfoUser source, InfoUserResponse destination, string destMember, ResolutionContext context)
         {
-            return _managerImage.SetDefaultAvatarImage();
+            return _managerImage.ChangeNameFileToURL(source.AvatarImage);
         }
     }
 }

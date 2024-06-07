@@ -6,7 +6,7 @@ using SocialMedia.Repositories.Interfaces;
 
 namespace SocialMedia.Helper.AutoMapperHelper
 {
-    public class GetIDToUserInfo : IValueResolver<Post, PostResponse,ItemSearchUser> ,IValueResolver<CommentPost, CommentPostResponse, ItemSearchUser>
+    public class GetIDToUserInfo : IValueResolver<Post, PostResponse,ItemSearchUser> ,IValueResolver<CommentPost, CommentPostResponse, ItemSearchUser>,IValueResolver<Notifications,NotificationResponse,ItemSearchUser>
     {
         private readonly IInforUser _inforUser;
         private readonly IMapper _mapper;
@@ -30,6 +30,11 @@ namespace SocialMedia.Helper.AutoMapperHelper
             return itemSearchUser;
         }
 
-        
+        public ItemSearchUser Resolve(Notifications source, NotificationResponse destination, ItemSearchUser destMember, ResolutionContext context)
+        {
+            InfoUser userInfo = _inforUser.GetUserById(source.IdUserRelative);
+            ItemSearchUser itemSearchUser = _mapper.Map<ItemSearchUser>(userInfo);
+            return itemSearchUser;
+        }
     }
 }

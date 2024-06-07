@@ -13,6 +13,7 @@ using SocialMedia.Repositories.Implementations;
 using SocialMedia.Repositories.Interfaces;
 using System.Runtime;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SocialMedia
 {
@@ -40,7 +41,9 @@ namespace SocialMedia
             builder.Services.AddScoped<ILikePost,LikePostRepository>();
             builder.Services.AddScoped<IMemberGroup,MemberGroupRepository>();
             builder.Services.AddScoped<IPost,PostRepository>();
+            builder.Services.AddScoped<IPostContent, PostContentRepository>();
             builder.Services.AddScoped<IRegister_SignIn,Register_SignInRepository>();
+            builder.Services.AddScoped<INotifications,NotificationRepository>();
 
             //helpper
             builder.Services.AddScoped<IToken, Token>();
@@ -97,7 +100,7 @@ namespace SocialMedia
                 RequestPath = "/Image"
             });
 
-
+        
             app.UseHttpsRedirection();
 
             app.UseRouting();

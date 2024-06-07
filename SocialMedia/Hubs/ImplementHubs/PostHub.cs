@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.OpenApi.Models;
 using SocialMedia.Dtos.Requests;
@@ -14,14 +15,15 @@ namespace SocialMedia.Hubs.ImplementHubs
 {
     public class PostHub : Hub
     {   
-        private readonly Dictionary<int, string> _connectionMap = new Dictionary<int, string>();
+        private readonly static Dictionary<int, string> _connectionMap = new Dictionary<int, string>();
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IToken _token;
         private readonly IPost _post;
         private readonly ILikePost _likePost;
         private readonly IMapper _mapper;
         private readonly ICommentPost _commentPost;
-        public PostHub(ICommentPost commentPost,IMapper mapper,ILikePost likePost, IPost post, IHttpContextAccessor httpContextAccessor, IToken token)
+        private readonly INotifications _notifications;
+        public PostHub(INotifications notifications,ICommentPost commentPost,IMapper mapper,ILikePost likePost, IPost post, IHttpContextAccessor httpContextAccessor, IToken token)
         {
             _mapper = mapper;
             _likePost = likePost;
@@ -29,52 +31,43 @@ namespace SocialMedia.Hubs.ImplementHubs
             _post = post;
             _httpContextAccessor = httpContextAccessor;
             _commentPost = commentPost;
-        }
-        
-
-        [Authorize]
-        public async Task Test (CreatePostRequest createPostRequest)
-        {
-            string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-
-
-            await Clients.All.SendAsync("ReceiveMessage", createPostRequest);
+            _notifications = notifications;
         }
 
         [Authorize]
-        public async Task AddPostHub(CreatePostRequest createPostRequest)
+        public override Task OnConnectedAsync()
         {
             try
             {
-                string[] token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"].ToString().Split(" ");
-                int UserId = _token.getUserFromToken(token[1]).IdUser;
+                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+                int UserId = _token.getUserFromToken(token).IdUser;
 
-                PostResponse postResponse = _post.AddPost(UserId, createPostRequest);
-
-                if (postResponse != null)
-                {
-                    MainResponse mainResponse = new MainResponse{
-                        Object = postResponse,
-                        success = true,
-                    };
-                    await Clients.All.SendAsync("ReceiveMessage", mainResponse);
-                }
-                else
-                {
-                    MainResponse mainResponse = new MainResponse
-                    {
-                        Object = null,
-                        success = false,
-                    };
-                    await Clients.All.SendAsync("ReceiveMessagePost", mainResponse);
-                }
-
+                if (UserId != null && !_connectionMap.Any(user => user.Key == UserId)) _connectionMap.Add(UserId, Context.ConnectionId);
             }
             catch (Exception ex)
             {
-                await Clients.Caller.SendAsync("MessageError", "Error :", ex.Message);
+                 Clients.Caller.SendAsync("onError", "OnDisconnected" + ex.Message);
             }
 
+            return base.OnConnectedAsync();
+        }
+
+        [Authorize]
+        public override Task OnDisconnectedAsync(Exception? exception)
+        {
+            try
+            {
+                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+                int UserId = _token.getUserFromToken(token).IdUser;
+
+                if (UserId != null && _connectionMap.Any(user => user.Key == UserId)) _connectionMap.Remove(UserId);
+            }
+            catch (Exception ex)
+            {
+                 Clients.Caller.SendAsync("onError", "OnDisconnected" + ex.Message);
+            }
+
+            return base.OnDisconnectedAsync(exception);
         }
 
         [Authorize]
@@ -90,32 +83,44 @@ namespace SocialMedia.Hubs.ImplementHubs
 
                 LikePostResponse likePostResponse;
 
-                if (isUserLikePost)
-                {
-
-                    likePostResponse = _likePost.DeleteLikePost(likePostRequest.idPost,UserId);
-                }
+                if (isUserLikePost) likePostResponse = _likePost.DeleteLikePost(likePostRequest.idPost,UserId);
                 else
                 {
-                   
                     LikePost likePost= _mapper.Map<LikePost>(likePostRequest);
                     likePost.IdUser = UserId;
-
-
                     likePostResponse = _likePost.AddLikePost(likePost);
+
+                    // tạo thông báo likePost người like khác chủ post
+                    int UserIdByPost = _post.GetPostInPost(likePost.IdPost).IdUser;
+                    if(UserIdByPost != UserId)
+                    {
+                        NotificationRequest notificationRequest = new NotificationRequest(UserIdByPost, 1, UserId,likePost.IdPost);
+                        NotificationResponse newNotification = _notifications.CreateNotification(notificationRequest);
+                        if (_connectionMap.ContainsKey(UserIdByPost) && newNotification != null)
+                        {
+                            MainResponse mainResponseNotification = new MainResponse
+                            {
+                                Object = newNotification,
+                                success = true
+                            };
+
+                            string ConnectionIdByUserIdPost = _connectionMap[UserIdByPost];
+                            await Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveNotification", mainResponseNotification);
+                        }
+                    }
                 }
+                //Trả về
+                MainResponse mainResponseCaller = new MainResponse
+                {
+                    Object = likePostResponse,
+                    success = true,
+                };
 
-                    MainResponse mainResponseCaller = new MainResponse
-                    {
-                        Object = likePostResponse,
-                        success = true,
-                    };
-
-                    MainResponse mainResponseOthers = new MainResponse
-                    {
-                        Object = likePostResponse.TotalLikes,
-                        success = true
-                    };
+                MainResponse mainResponseOthers = new MainResponse
+                {
+                    Object = likePostResponse.TotalLikes,
+                    success = true
+                };
 
                 await Clients.Caller.SendAsync("ReceiveMessageCaller", mainResponseCaller, likePostRequest.idPost, Context.ConnectionId); ;
                 await Clients.Others.SendAsync("ReceiveMessageOthers", mainResponseOthers,likePostRequest.idPost, Context.ConnectionId);
@@ -128,96 +133,72 @@ namespace SocialMedia.Hubs.ImplementHubs
 
         }
 
-            public override Task OnConnectedAsync()
-            {
-                try
-                {
-                    string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-                    int UserId = _token.getUserFromToken(token).IdUser;
-
-                    if (UserId != null && !_connectionMap.Any(user => user.Key == UserId))
-                    {
-                        _connectionMap.Add(UserId, Context.ConnectionId);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Clients.Caller.SendAsync("onError", "OnDisconnected" + ex.Message);
-                }
-
-                return base.OnConnectedAsync();
-            }
-
-            public override async Task OnDisconnectedAsync(Exception? exception)
-            {
-                try
-                {
-                    string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-                    int UserId = _token.getUserFromToken(token).IdUser;
-
-                    if (UserId != null && _connectionMap.Any(user => user.Key == UserId))
-                    {
-                        _connectionMap.Remove(UserId);
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    Clients.Caller.SendAsync("onError", "OnDisconnected" + ex.Message);
-                }
-
-                await base.OnDisconnectedAsync(exception);
-            }
-
-            public async Task AddCommentInPost(CommentPostRequest commentPostRequest)
-            {
-                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-                int UserId = _token.getUserFromToken(token).IdUser;
+        [Authorize]
+        public async Task AddCommentInPost(CommentPostRequest commentPostRequest)
+        {
+            string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+            int UserId = _token.getUserFromToken(token).IdUser;
             CommentPostResponse CommentPost = _commentPost.CreateCommentPost(commentPostRequest, UserId);
 
-                MainResponse mainResponse = new MainResponse()
-                {
-                    success = true,
-                    Object = CommentPost
-                };
-                await Clients.Group(commentPostRequest.IdPost.ToString()).SendAsync("ReceiveCommentPost", mainResponse);
-            }
-       
-            public async Task TogleGroupCommentPost(GroupCommentPostRequest groupCommentPostRequest)
-            {
-            ///chưa kip reder lại nên isOpen ngược lại nên là nó bị ngược
-            if (!groupCommentPostRequest.isOpen) { await AddUserInGroupCommentPost(groupCommentPostRequest.idPost); }
-                else { await RemoveUserInGroupCommentPost(groupCommentPostRequest.idPost); }
 
-             }
-
-            private async Task AddUserInGroupCommentPost(int idPost)
-            {
-                
-                var listCommentPostResponse = _commentPost.GetCommentsPostInPost(idPost);
-                MainResponse mainResponse = new MainResponse
+            // tạo thông báo khi addComment
+            int UserIdByPost = _post.GetPostInPost(CommentPost.IdPost).IdUser;
+            if (UserIdByPost != UserId)
+            { 
+                NotificationRequest notificationRequest = new NotificationRequest(UserIdByPost, 3, UserId, CommentPost.IdPost);
+                NotificationResponse newNotification = _notifications.CreateNotification(notificationRequest);
+                if (_connectionMap.ContainsKey(UserIdByPost))
                 {
-                    Object = listCommentPostResponse,
-                    success = true
-                };
-                await Groups.AddToGroupAsync(Context.ConnectionId, idPost.ToString());
-                
-                
-                await Clients.Caller.SendAsync("ReceiveMessagePostCommentGroup", mainResponse);
+                    MainResponse mainResponseNotification = new MainResponse
+                    {
+                        Object = newNotification,
+                        success = true
+                    };
+                    string ConnectionIdByUserIdPost = _connectionMap[UserIdByPost];
+                    await Clients.User(ConnectionIdByUserIdPost).SendAsync("ReceiveNotificationForPostUser", mainResponseNotification);
+                }
             
             }
-
-            private async Task RemoveUserInGroupCommentPost(int idPost)
+            //Trả về
+            MainResponse mainResponse = new MainResponse()
             {
-                
-                MainResponse mainResponse = new MainResponse
-                {
-                    Object = Array.Empty<PostContentResponse>,
-                    success = true
-                };
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, idPost.ToString());
+                success = true,
+                Object = CommentPost
+            };
+
+            await Clients.Group(commentPostRequest.IdPost.ToString()).SendAsync("ReceiveCommentPost", mainResponse);
+        }
+       
+        public async Task TogleGroupCommentPost(GroupCommentPostRequest groupCommentPostRequest)
+        {
+            ///chưa kip reder lại nên isOpen ngược lại nên là nó bị ngược
+            if (!groupCommentPostRequest.isOpen) { await AddUserInGroupCommentPost(groupCommentPostRequest.idPost); }
+            else { await RemoveUserInGroupCommentPost(groupCommentPostRequest.idPost); }
+
+         }
+
+        private async Task AddUserInGroupCommentPost(int idPost)
+        {
+            var listCommentPostResponse = _commentPost.GetCommentsPostInPost(idPost);
+            MainResponse mainResponse = new MainResponse
+            {
+                Object = listCommentPostResponse,
+                success = true
+            };
+            await Groups.AddToGroupAsync(Context.ConnectionId, idPost.ToString());
+            await Clients.Caller.SendAsync("ReceiveMessagePostCommentGroup", mainResponse);
+        }
+
+        private async Task RemoveUserInGroupCommentPost(int idPost)
+        {
+            MainResponse mainResponse = new MainResponse
+            {
+                Object = Array.Empty<PostContentResponse>,
+                success = true
+            };
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, idPost.ToString());
             await Clients.Caller.SendAsync("ReceiveMessagePostCommentGroup", $"{Context.ConnectionId} Rời group: {idPost}.");
-            }
+        }
         
         
     }

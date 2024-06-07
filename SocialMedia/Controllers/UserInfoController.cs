@@ -16,17 +16,17 @@ namespace SocialMedia.Controllers
         private readonly IInforUser _inforUser;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IToken _token;
+        private readonly ILikePost _likePost;
 
-        public UserInfoController(IInforUser infoUser, IToken token, IHttpContextAccessor httpContextAccessor) { 
+        public UserInfoController(ILikePost likePost, IInforUser infoUser, IToken token, IHttpContextAccessor httpContextAccessor) { 
             
             _inforUser = infoUser;
-           
             _token = token;
             _httpContextAccessor = httpContextAccessor;
+            _likePost = likePost;
         }
 
         [HttpGet("{idUser}")]
-        
         [Authorize]
         public ActionResult Index(int idUser) {
             try
@@ -35,6 +35,10 @@ namespace SocialMedia.Controllers
                 InfoUser userCurrent = _token.getUserFromToken(token);
 
                 InfoUserResponse infoUserResponse = _inforUser.GetInfomationInUser(idUser, userCurrent.IdUser);
+                foreach (var post in infoUserResponse.PostResponses)
+                {
+                    post.LikePost.isLike = _likePost.GetIsUserLikePost(post.IdPost, userCurrent.IdUser);
+                }
 
                 return Ok(new MainResponse
                 {

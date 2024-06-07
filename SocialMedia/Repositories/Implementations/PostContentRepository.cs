@@ -20,16 +20,21 @@ namespace SocialMedia.Repositories.Implementations
             _image = image;
 
         }
-        public bool AddPostContent(PostContentRequest postContentRequest)
+        public List<PostContentResponse> AddPostContent(List<PostContentRequest> postContentRequest,int idPost)
         {
-            PostContent postContent = _mapper.Map<PostContent>(postContentRequest);
+            List<PostContent> listPostContent = _mapper.Map<List<PostContent>>(postContentRequest);
+            foreach(PostContent  postContent in listPostContent)
+            {
+                postContent.IdPost = idPost;
+                if(postContent.IdPost == null) { return null; }
+                _dbContext.PostContents.Add(postContent);   
+            }    
+ 
+            _dbContext.SaveChanges();
 
-            if (postContent == null) return false;
-            
-            _dbContext.PostContents.Add(postContent);   
-            _dbContext.SaveChanges();   
+            List<PostContentResponse> postContentResponses = _mapper.Map<List<PostContentResponse>>(listPostContent);
 
-            return true;
+            return postContentResponses;
 
         }
 
@@ -46,7 +51,9 @@ namespace SocialMedia.Repositories.Implementations
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            try { }
+            catch { }
+            
         }
 
         public IEnumerable<PostContentResponse> GetPostContentList(int idPos)
