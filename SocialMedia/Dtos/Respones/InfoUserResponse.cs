@@ -1,4 +1,6 @@
-﻿namespace SocialMedia.Dtos.Respones
+﻿using SocialMedia.Models;
+
+namespace SocialMedia.Dtos.Respones
 {
     public class InfoUserResponse
     {
@@ -9,6 +11,8 @@
         public string? UserDescription { get; set; }
 
         public IEnumerable<PostResponse>? PostResponses { get; set; }
+
+        public string? FriendStatus { get; set; }
 
         public bool isCurrentUser {  get; set; }
 

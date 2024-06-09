@@ -12,11 +12,13 @@ namespace SocialMedia.Repositories.Implementations
         private readonly IMapper _mapper;
         private readonly SociaMediaContext _dbContext;
         private readonly IPost _post;
+        private readonly IFriends _friend;
 
-        public InfoUserRepository(IPost post, IMapper mapper, SociaMediaContext dbContext) {
+        public InfoUserRepository(IFriends friend, IPost post, IMapper mapper, SociaMediaContext dbContext) {
             _mapper = mapper;
             _dbContext = dbContext;
             _post = post;
+            _friend = friend;
         }
         public bool CreateUser(InfoUser user)
         {
@@ -56,6 +58,7 @@ namespace SocialMedia.Repositories.Implementations
                 IEnumerable<PostResponse> listPostResponse = _post.GetAllPostInUser(idUser);
                 InfoUserResponse userResponse = _mapper.Map<InfoUserResponse>(userInfo);
                 userResponse.PostResponses = listPostResponse;
+                userResponse.FriendStatus = _friend.GetFriendStatus(idUser, LoginUserId);
                 userResponse.isCurrentUser = false;
                 return userResponse;
             }

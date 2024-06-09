@@ -1,13 +1,13 @@
 ﻿namespace SocialMedia.Dtos.Requests
 {
-    public class NotificationRequest
+    public class NotificationFriendRequest
     {
-        public NotificationRequest(int IdUser,int TypeNotification,int IdUserRelative,int? IdItemRelative) {
+        public NotificationFriendRequest(int IdUser, int TypeNotification, int IdUserRelative)
+        {
             this.IdUser = IdUser;
             this.TypeNotification = TypeNotification;
             this.IdUserRelative = IdUserRelative;
-            this.IdItemRelative = IdItemRelative;   
-        
+
         }
         public int IdUser { get; set; }
 
@@ -15,6 +15,5 @@
 
         public int IdUserRelative { get; set; }
 
-        public int? IdItemRelative { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using SocialMedia.Dtos.Requests;
 using SocialMedia.Dtos.Respones;
@@ -19,7 +20,7 @@ namespace SocialMedia.Repositories.Implementations
         public NotificationResponse CreateNotification(NotificationRequest notificationRequest)
         {
             Notifications newNotification = _mapper.Map<Notifications>(notificationRequest);
-            if (_dbContext.Notifications.Any(x => x.IdItemRelative == newNotification.IdItemRelative && x.IdUserRelative == newNotification.IdItemRelative))
+            if (_dbContext.Notifications.Any(x => x.IdItemRelative == newNotification.IdItemRelative && x.IdUserRelative == newNotification.IdUserRelative))
                 return null;
 
             _dbContext.Notifications.Add(newNotification);
@@ -29,6 +30,68 @@ namespace SocialMedia.Repositories.Implementations
 
         }
 
+        public NotificationResponse CreateNotification(NotificationFriendRequest notificationFriendRequest)
+        {
+            Notifications newNotification = _mapper.Map<Notifications>(notificationFriendRequest);
+            if (_dbContext.Notifications.Any(x =>
+            x.IdUser == newNotification.IdUser && 
+            x.TypeNotification.Equals(newNotification.TypeNotification) 
+            && x.IdUserRelative == notificationFriendRequest.IdUserRelative))
+                return null;
+
+            _dbContext.Notifications.Add(newNotification);
+            _dbContext.SaveChanges();
+
+            return _mapper.Map<NotificationResponse>(newNotification);
+        }
+
+        public NotificationResponse DeleteNotificationbyId(int idNotification)
+        {
+            throw new NotImplementedException();
+        }
+
+        public NotificationResponse DeleteNotificationbyPropeties(int idUser, string type, int idUserRelative, int idItemRelative)
+        {
+            if (!_dbContext.Notifications
+                .Where(Noti => Noti.IdUser == idUser &&
+                Noti.TypeNotification.Equals(type) &&
+                Noti.IdUserRelative == idUserRelative &&
+                Noti.IdItemRelative == idItemRelative
+            ).Any()) return null;
+
+
+            var deleteNotification = _dbContext.Notifications
+                .Where(Noti => Noti.IdUser == idUser &&
+                Noti.TypeNotification.Equals(type) &&
+                Noti.IdUserRelative == idUserRelative &&
+                Noti.IdItemRelative == idItemRelative
+            ).SingleOrDefault();
+
+            _dbContext.Notifications.Remove(deleteNotification);
+            _dbContext.SaveChanges();
+
+            return _mapper.Map<NotificationResponse>(deleteNotification);
+        }
+        public NotificationResponse DeleteNotificationbyPropeties(int idUser, string type, int idUserRelative)
+        {
+            if (!_dbContext.Notifications
+                .Where(Noti => Noti.IdUser == idUser &&
+                Noti.TypeNotification.Equals(type) &&
+                Noti.IdUserRelative == idUserRelative
+            ).Any()) return null;
+
+
+            var deleteNotification = _dbContext.Notifications
+                .Where(Noti => Noti.IdUser == idUser &&
+                Noti.TypeNotification.Equals(type) &&
+                Noti.IdUserRelative == idUserRelative 
+            ).SingleOrDefault();
+
+            _dbContext.Notifications.Remove(deleteNotification);
+            _dbContext.SaveChanges();
+
+            return _mapper.Map<NotificationResponse>(deleteNotification);
+        }
         public IEnumerable<NotificationResponse> GetUserNotifications(int idUser)
         {
             IEnumerable<Notifications> listNotification = _dbContext.Notifications.Where(noti => noti.IdUser == idUser).ToList();
@@ -44,5 +107,7 @@ namespace SocialMedia.Repositories.Implementations
         {
             throw new NotImplementedException();
         }
+
+        
     }
 }

@@ -31,7 +31,13 @@ namespace SocialMedia
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddDbContext<SociaMediaContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("databaseConnection")));
-            builder.Services.AddSignalR();
+            builder.Services.AddSignalR(option =>
+            {
+                option.ClientTimeoutInterval = TimeSpan.FromMinutes(30);
+                option.EnableDetailedErrors = true;
+                option.KeepAliveInterval = TimeSpan.FromMinutes(30);
+            });
+
             ///https://www.youtube.com/watch?v=mpBPXl7dFgA automapper advanced
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             //database
@@ -44,6 +50,7 @@ namespace SocialMedia
             builder.Services.AddScoped<IPostContent, PostContentRepository>();
             builder.Services.AddScoped<IRegister_SignIn,Register_SignInRepository>();
             builder.Services.AddScoped<INotifications,NotificationRepository>();
+            builder.Services.AddScoped<IFriends,FriendRepository>();
 
             //helpper
             builder.Services.AddScoped<IToken, Token>();
@@ -90,8 +97,6 @@ namespace SocialMedia
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
             }
 
             app.UseStaticFiles(new StaticFileOptions

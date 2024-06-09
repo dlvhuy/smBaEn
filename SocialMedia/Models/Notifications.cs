@@ -16,7 +16,7 @@ namespace SocialMedia.Models
 
         public int IdUserRelative {  get; set; }
     
-        public int IdItemRelative { get; set; }
+        public int? IdItemRelative { get; set; }
 
         public virtual InfoUser User { get; set; }
 

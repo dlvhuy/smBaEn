@@ -2,6 +2,7 @@
 {
     public partial class Friends
     {
+
         public int Id { get; set; }
 
         public int IdUser { get; set; }

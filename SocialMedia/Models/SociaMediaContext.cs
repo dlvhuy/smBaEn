@@ -52,7 +52,7 @@ namespace SocialMedia.Models
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Friends_InfoUser");
 
-                entity.HasOne(e => e.User)
+                entity.HasOne(e => e.Friend)
                .WithMany()
                .HasForeignKey(d => d.IdFriend)
                .OnDelete(DeleteBehavior.ClientSetNull)
@@ -68,6 +68,7 @@ namespace SocialMedia.Models
                 entity.Property(e => e.MessageNotification).HasMaxLength(100);
 
                 entity.Property(e => e.StatusNotification).HasMaxLength(50);
+
 
                 entity.HasOne(e => e.User)
                .WithMany()
