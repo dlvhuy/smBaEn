@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.Configuration.Conventions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -8,6 +9,7 @@ using SocialMedia.Dtos.Respones;
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
+
 using System.Diagnostics.Eventing.Reader;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
@@ -24,8 +26,10 @@ namespace SocialMedia.Hubs.ImplementHubs
         private readonly ICommentPost _commentPost;
         private readonly INotifications _notifications;
         private readonly IFriends _friends;
-        public PostHub(IFriends friends, INotifications notifications,ICommentPost commentPost,IMapper mapper,ILikePost likePost, IPost post, IHttpContextAccessor httpContextAccessor, IToken token)
+        private readonly IHubContext<PostHub> _hubContext;
+        public PostHub(IHubContext<PostHub> hubContext, IFriends friends, INotifications notifications,ICommentPost commentPost,IMapper mapper,ILikePost likePost, IPost post, IHttpContextAccessor httpContextAccessor, IToken token)
         {
+            _hubContext = hubContext;
             _mapper = mapper;
             _likePost = likePost;
             _token = token;
@@ -66,51 +70,26 @@ namespace SocialMedia.Hubs.ImplementHubs
             return base.OnDisconnectedAsync(exception);
         }
 
-        [Authorize]
-        public async Task UpdateLikePost(LikePostRequest likePostRequest)
+        
+        public async Task UpdateLikePostTest(int idUserCaller,int idPost ,LikePostResponse likePostResponse)
         {
-            try
+            MainResponse mainResponseCaller = returnMainResponse(likePostResponse);
+            MainResponse mainResponseOthers = returnMainResponse(likePostResponse.TotalLikes);
+
+            string ConnectionIdByUserIdPost = _connectionMap[idUserCaller];
+            await _hubContext.Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveMessageCaller", mainResponseCaller, idPost); 
+            await _hubContext.Clients.AllExcept(ConnectionIdByUserIdPost).SendAsync("ReceiveMessageOthers", mainResponseOthers, idPost);
+           
+        }
+
+        public async Task SendNotification(int idUser,NotificationResponse newNotification)
+        {
+            if (_connectionMap.ContainsKey(idUser))
             {
-                // người gọi thì nhận được cả isLike và Totallike còn những người khác thì chỉ nhận được totalLilke thoi
-                string[] token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"].ToString().Split(" ");
-                int UserId = _token.getUserFromToken(token[1]).IdUser;
-
-                bool isUserLikePost = _likePost.GetIsUserLikePost(likePostRequest.idPost, UserId);
-
-                LikePostResponse likePostResponse;
-
-                if (isUserLikePost) likePostResponse = _likePost.DeleteLikePost(likePostRequest.idPost,UserId);
-                else
-                {
-                    LikePost likePost= _mapper.Map<LikePost>(likePostRequest);
-                    likePost.IdUser = UserId;
-                    likePostResponse = _likePost.AddLikePost(likePost);
-
-                    // tạo thông báo likePost người like khác chủ post
-                    int UserIdByPost = _post.GetPostInPost(likePost.IdPost).IdUser;
-                    if(UserIdByPost != UserId)
-                    {
-                        // 1 là typeLikePostNotification
-                        NotificationRequest notificationRequest = new NotificationRequest(UserIdByPost, 1, UserId,likePost.IdPost);
-                        NotificationResponse newNotification = _notifications.CreateNotification(notificationRequest);
-                        if (_connectionMap.ContainsKey(UserIdByPost) && newNotification != null)
-                        {
-                            MainResponse mainResponseNotification = returnMainResponse(newNotification);
-                            string ConnectionIdByUserIdPost = _connectionMap[UserIdByPost];
-                            await Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveNotification", mainResponseNotification);
-                        }
-                    }
-                }
-                //Trả về
-                MainResponse mainResponseCaller = returnMainResponse(likePostResponse);
-                MainResponse mainResponseOthers = returnMainResponse(likePostResponse.TotalLikes);
-
-                await Clients.Caller.SendAsync("ReceiveMessageCaller", mainResponseCaller, likePostRequest.idPost, Context.ConnectionId); ;
-                await Clients.Others.SendAsync("ReceiveMessageOthers", mainResponseOthers,likePostRequest.idPost, Context.ConnectionId);
-
+                MainResponse mainResponseNotification = returnMainResponse(newNotification);
+                string ConnectionIdByUserIdPost = _connectionMap[idUser];
+                await _hubContext.Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveNotification", mainResponseNotification);
             }
-            catch (Exception ex) { await Clients.Caller.SendAsync("MessageError", "Error :", ex.Message);}
-
         }
 
         [Authorize]

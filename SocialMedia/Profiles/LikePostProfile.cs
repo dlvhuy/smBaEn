@@ -10,8 +10,8 @@ namespace SocialMedia.Profiles
         {
             CreateMap<LikePostRequest, LikePost>()
             .ForMember(dest => dest.IdLikePost, src => src.MapFrom(x => x.Equals(null)))
-                 .ForMember(dest => dest.IdPost, src => src.MapFrom(x => x.idPost));
-                 
+            .ForMember(dest => dest.IdPost, src => src.MapFrom(x => x.idPost));
+
         }
     }
 }

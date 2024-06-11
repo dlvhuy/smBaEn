@@ -29,10 +29,6 @@
     <Folder Include="Services\CommentService\Dtos\Response\" />
     <Folder Include="Services\CommentService\Implement\" />
     <Folder Include="Services\CommentService\Interface\" />
-    <Folder Include="Services\NotificationService\Dtos\Request\" />
-    <Folder Include="Services\NotificationService\Dtos\Response\" />
-    <Folder Include="Services\NotificationService\Implement\" />
-    <Folder Include="Services\NotificationService\Interface\" />
     <Folder Include="Services\FriendService\Dtos\Request\" />
     <Folder Include="Services\FriendService\Dtos\Response\" />
     <Folder Include="Services\FriendService\Implement\" />

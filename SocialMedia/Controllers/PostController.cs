@@ -94,9 +94,7 @@ namespace SocialMedia.Controllers
             {
                 string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
                 int UserId = _token.getUserFromToken(token).IdUser;
-
-                _hub.Test("string test",UserId);
-
+                _postService.UpdateLikePost(UserId, idPost);
                 return Ok();
             }
             catch (Exception ex) { return BadRequest(ex); }

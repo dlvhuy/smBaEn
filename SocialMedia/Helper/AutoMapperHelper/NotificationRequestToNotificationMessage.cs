@@ -2,6 +2,7 @@
 using SocialMedia.Dtos.Requests;
 using SocialMedia.Models;
 
+
 namespace SocialMedia.Helper.AutoMapperHelper
 {
     public class NotificationRequestToNotificationMessage : IValueResolver<NotificationRequest, Notifications, string>,IValueResolver<NotificationFriendRequest, Notifications,string>

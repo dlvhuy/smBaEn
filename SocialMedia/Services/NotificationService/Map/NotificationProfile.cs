@@ -6,11 +6,13 @@ using SocialMedia.Dtos.Respones;
 using SocialMedia.Helper.AutoMapperHelper;
 using SocialMedia.Models;
 
-namespace SocialMedia.Profiles
+
+namespace SocialMedia.Services.NotificationService.Map
 {
     public class NotificationProfile : Profile
     {
-        public NotificationProfile() {
+        public NotificationProfile()
+        {
             CreateMap<NotificationRequest, Notifications>()
                 .ForMember(dest => dest.IdNotification, src => src.MapFrom(x => x.Equals(null)))
                 .ForMember(dest => dest.IdUser, src => src.MapFrom(x => x.IdUser))

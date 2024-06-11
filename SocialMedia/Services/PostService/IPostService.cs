@@ -18,6 +18,8 @@ namespace SocialMedia.Services.PostService
 
         void SearchPostByContent(string Content);
         void SearchPostsByUser(int idUserPost);
+        
+        void UpdateLikePost(int idUserCall,int idPost);
 
     }
 }

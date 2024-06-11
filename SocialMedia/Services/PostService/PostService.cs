@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
+using SocialMedia.Dtos.Requests;
 using SocialMedia.Dtos.Respones;
 using SocialMedia.Hubs.ImplementHubs;
+using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.NotificationService;
 using SocialMedia.Services.PostService.Dtos.Request;
 using SocialMedia.Services.PostService.Dtos.Response;
 
@@ -14,17 +18,18 @@ namespace SocialMedia.Services.PostService
         private readonly IHubContext<PostHub> _hubContext;
         private readonly ILikePost _likePost;
         private readonly PostHub _postHub;
-       
-        
-        public PostService(PostHub postHub, ILikePost likePost,IHubContext<PostHub> hubContext, IPostContent postContent, IPost post)
+        private readonly INotificationService _notificationService;
+
+
+
+        public PostService(INotificationService notificationService ,PostHub postHub, ILikePost likePost,IHubContext<PostHub> hubContext, IPostContent postContent, IPost post)
         {
+            _notificationService = notificationService;
             _post = post;
             _postContent = postContent;
             _hubContext = hubContext;
             _likePost = likePost;
             _postHub = postHub;
-            
-            
         }
         public MainResponse GetPosts(int idUserCall)
         {
@@ -64,9 +69,29 @@ namespace SocialMedia.Services.PostService
         {
             var postsResponse = _post.GetAllPostInUser(idUser);
             postsResponse.ForEach(post => post.LikePost.isLike = _likePost.GetIsUserLikePost(post.IdPost, idUserCall));
-           return postsResponse;
+            return postsResponse;
         }
 
+        public void UpdateLikePost(int idUserCall, int idPost)
+        {
+            bool isUserLikePost = _likePost.GetIsUserLikePost(idPost, idUserCall);
+
+            LikePostResponse likePostResponse;
+            if (isUserLikePost) likePostResponse = _likePost.DeleteLikePost(idPost, idUserCall);
+            else
+            {
+                LikePost likePost = new LikePost() { IdPost = idPost, IdUser = idUserCall };
+                likePostResponse = _likePost.AddLikePost(likePost);
+
+                var idPostUser = _post.GetPostInPost(idPost).IdUser;
+                if(idPostUser != idUserCall)
+                {
+                    var notificationRequest = new NotificationRequest(idPostUser, 1, idUserCall, idPost);
+                    _notificationService.SendNotification(idPostUser, notificationRequest);
+                }
+            }
+            _postHub.UpdateLikePostTest(idUserCall,idPost, likePostResponse);
+        }
         public void DeletePost(int idPost)
         {
             throw new NotImplementedException();

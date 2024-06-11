@@ -18,8 +18,6 @@ namespace SocialMedia.Repositories.Implementations
         {
             try
             {
-
-                
                 _dbContext.LikePosts.Add(AddLikePost);
                 _dbContext.SaveChanges();
 

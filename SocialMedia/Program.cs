@@ -11,6 +11,7 @@ using SocialMedia.Models;
 using SocialMedia.Profiles;
 using SocialMedia.Repositories.Implementations;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.NotificationService;
 using SocialMedia.Services.PostService;
 using System.Runtime;
 using System.Text;
@@ -59,6 +60,7 @@ namespace SocialMedia
 
 
             //services
+            builder.Services.AddTransient<INotificationService, NotificationService>();
             builder.Services.AddTransient<IPostService, PostService>();
             //hubs
             builder.Services.AddTransient<IToken, Token>();
