@@ -23,17 +23,12 @@ namespace SocialMedia.Repositories.Implementations
         public List<PostContentResponse> AddPostContent(List<PostContentRequest> postContentRequest,int idPost)
         {
             List<PostContent> listPostContent = _mapper.Map<List<PostContent>>(postContentRequest);
-            foreach(PostContent  postContent in listPostContent)
-            {
-                postContent.IdPost = idPost;
-                if(postContent.IdPost == null) { return null; }
-                _dbContext.PostContents.Add(postContent);   
-            }    
- 
+            listPostContent.ForEach(item => item.IdPost = idPost);
+
+            _dbContext.PostContents.AddRange(listPostContent);
             _dbContext.SaveChanges();
 
             List<PostContentResponse> postContentResponses = _mapper.Map<List<PostContentResponse>>(listPostContent);
-
             return postContentResponses;
 
         }
@@ -42,10 +37,10 @@ namespace SocialMedia.Repositories.Implementations
         {
               
             PostContent postContent = _dbContext.PostContents.SingleOrDefault(postContent => postContent.IdPostContent == idPostContent);
-
             if (postContent == null) return false; 
             
             _dbContext.PostContents.Remove(postContent);
+            _dbContext.SaveChanges();
             return true;
         }
 

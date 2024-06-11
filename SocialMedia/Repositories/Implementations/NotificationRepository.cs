@@ -100,7 +100,7 @@ namespace SocialMedia.Repositories.Implementations
 
         public int TotalNotificationUnRead(int idUser)
         {
-            return _dbContext.Notifications.Where(noti => noti.IdUser == idUser && noti.StatusNotification == "unRead").Count();
+            return _dbContext.Notifications.Where(noti => noti.IdUser == idUser && noti.StatusNotification.Equals("unread")).Count();
         }
 
         public NotificationResponse UpdateStatusNotification(int idNotification)

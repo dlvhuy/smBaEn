@@ -57,26 +57,23 @@ namespace SocialMedia.Helper.Implements
             }
 
             var handler = new JwtSecurityTokenHandler();
-                var validationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AppSetting:SecretKey"])),
-                    ValidateAudience = false,
-                    ValidateIssuer = false,
-                    ClockSkew = TimeSpan.Zero
-                };
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AppSetting:SecretKey"])),
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ClockSkew = TimeSpan.Zero
+            };
 
-                var tokenValidationResult = handler.ValidateToken(Token, validationParameters, out SecurityToken validatedToken);
-                
-                var jwtToken = (JwtSecurityToken)validatedToken;
+            var tokenValidationResult = handler.ValidateToken(Token, validationParameters, out SecurityToken validatedToken);
+            var jwtToken = (JwtSecurityToken)validatedToken;
+            var claims = jwtToken.Claims;
+            string username = claims.First(c => c.Type == "unique_name").Value;
 
-                var claims = jwtToken.Claims;
+            InfoUser userCurrent = _dbContext.InfoUsers.FirstOrDefault(x => x.UserName == username);
 
-                string username = claims.First(c => c.Type == "unique_name").Value;
-
-                InfoUser userCurrent = _dbContext.InfoUsers.FirstOrDefault(x => x.UserName == username);
-
-                return userCurrent;
+            return userCurrent;
                 
             }
 

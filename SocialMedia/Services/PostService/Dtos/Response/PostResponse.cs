@@ -1,4 +1,6 @@
-﻿namespace SocialMedia.Dtos.Respones
+﻿using SocialMedia.Dtos.Respones;
+
+namespace SocialMedia.Services.PostService.Dtos.Response
 {
     public class PostResponse
     {

@@ -32,28 +32,14 @@ namespace SocialMedia.Controllers
             try
             {
                 string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-                InfoUser userCurrent = _token.getUserFromToken(token);
+                int idUserCurrent = _token.getUserFromToken(token).IdUser;
+                var infoUserResponse = _inforUser.GetInfomationInUser(idUser, idUserCurrent);
 
-                InfoUserResponse infoUserResponse = _inforUser.GetInfomationInUser(idUser, userCurrent.IdUser);
-                foreach (var post in infoUserResponse.PostResponses)
-                {
-                    post.LikePost.isLike = _likePost.GetIsUserLikePost(post.IdPost, userCurrent.IdUser);
-                }
-
-                return Ok(new MainResponse
-                {
-                    Object = infoUserResponse,
-                    success = true,
-                });
-
+                return Ok(new MainResponse(infoUserResponse, true));
             }
             catch
             {
-                return BadRequest(new MainResponse
-                {
-                    Object = null,
-                    success = false,
-                });
+                return BadRequest(new MainResponse(null, false));
             }
                 
         }
@@ -65,23 +51,13 @@ namespace SocialMedia.Controllers
             {
                 string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
                 InfoUser userCurrent = _token.getUserFromToken(token);
+                var infoUserResponse = _inforUser.SearchUser(SearchString, userCurrent);
 
-                IEnumerable<ItemSearchUser> infoUserResponse = _inforUser.SearchUser(SearchString, userCurrent);
-
-                return Ok(new MainResponse
-                {
-                    Object = infoUserResponse,
-                    success = true,
-                });
-
+                return Ok(new MainResponse(infoUserResponse, true));
             }
             catch
             {
-                return BadRequest(new MainResponse
-                {
-                    Object = null,
-                    success = false,
-                });
+                return BadRequest(new MainResponse(null, false));
             }
 
 

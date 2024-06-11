@@ -1,16 +1,16 @@
-﻿using SocialMedia.Dtos.Requests;
-using SocialMedia.Dtos.Respones;
-using SocialMedia.Models;
+﻿using SocialMedia.Models;
+using SocialMedia.Services.PostService.Dtos.Request;
+using SocialMedia.Services.PostService.Dtos.Response;
 
 namespace SocialMedia.Repositories.Interfaces
 {
     public interface IPost : IDisposable
     {
-        IEnumerable<PostResponse> GetAllPostInUser(int  userId);
+        List<PostResponse> GetAllPostInUser(int userId);
 
         IEnumerable<PostResponse> GetAllPostInGroup(int GroupId);
 
-        IEnumerable<PostResponse> GetAllPosts();
+        List<PostResponse> GetAllPosts();
 
         PostResponse GetPost(int PostId);
 

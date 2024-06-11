@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using SocialMedia.Dtos.Requests;
 using SocialMedia.Dtos.Respones;
-using SocialMedia.Helper.Enums;
+
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
@@ -11,22 +11,20 @@ namespace SocialMedia.Repositories.Implementations
     public class Register_SignInRepository : IRegister_SignIn
     { 
         private readonly SociaMediaContext _dbcontext;
-
         private readonly IMapper _mapper;
         private readonly IToken _token;
+        private readonly IInforUser _inforUser;
 
 
-        public Register_SignInRepository(IToken token,SociaMediaContext sociaMedia,IMapper mapper) {
+        public Register_SignInRepository(IInforUser inforUser, IToken token,SociaMediaContext sociaMedia,IMapper mapper) {
             _dbcontext = sociaMedia;
             _mapper = mapper;
             _token = token;
+            _inforUser = inforUser;
         }
         public void Dispose()
         {
-            try
-            {
-
-            }
+            try { }
             catch { return; }
         }
 
@@ -47,16 +45,14 @@ namespace SocialMedia.Repositories.Implementations
                 };
 
             var InfoUser = _mapper.Map<InfoUser>(signUpRequest);
+            bool isSuccess  = _inforUser.CreateUser(InfoUser); 
 
-            if(InfoUser == null) return new SignUpResponse()
+            if(!isSuccess) return new SignUpResponse()
             {
                 success = false,
                 message = "Other Error"
             };
 
-
-            _dbcontext.InfoUsers.Add(InfoUser);
-            _dbcontext.SaveChanges();
 
             return new SignUpResponse()
             {

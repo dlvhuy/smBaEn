@@ -1,16 +1,17 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using SocialMedia.Helper.Implements;
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Hubs.ImplementHubs;
-
 using SocialMedia.Models;
 using SocialMedia.Profiles;
 using SocialMedia.Repositories.Implementations;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.PostService;
 using System.Runtime;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
@@ -21,6 +22,7 @@ namespace SocialMedia
     {
         public static void Main(string[] args)
         {
+            
             var builder = WebApplication.CreateBuilder(args);
             var env = builder.Environment;
             // Add services to the container.
@@ -52,14 +54,20 @@ namespace SocialMedia
             builder.Services.AddScoped<INotifications,NotificationRepository>();
             builder.Services.AddScoped<IFriends,FriendRepository>();
 
-            //helpper
-            builder.Services.AddScoped<IToken, Token>();
-            builder.Services.AddScoped<IManageImage, ManageImage>();
+            builder.Services.AddScoped<PostHub>();
+            
+
+
+            //services
+            builder.Services.AddTransient<IPostService, PostService>();
+            //hubs
+            builder.Services.AddTransient<IToken, Token>();
+            builder.Services.AddSingleton<IManageImage, ManageImage>();
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+           
 
             //automapper
           
-            //hubs
 
 
 
@@ -97,6 +105,7 @@ namespace SocialMedia
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+
             }
 
             app.UseStaticFiles(new StaticFileOptions

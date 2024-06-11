@@ -3,6 +3,7 @@ using SocialMedia.Dtos.Respones;
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.PostService.Dtos.Response;
 
 namespace SocialMedia.Helper.AutoMapperHelper
 {

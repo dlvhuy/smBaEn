@@ -1,4 +1,6 @@
-﻿namespace SocialMedia.Dtos.Requests
+﻿using SocialMedia.Dtos.Requests;
+
+namespace SocialMedia.Services.PostService.Dtos.Request
 {
     public class CreatePostRequest
     {

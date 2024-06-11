@@ -2,6 +2,8 @@
 using SocialMedia.Dtos.Respones;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.PostService;
+using SocialMedia.Services.PostService.Dtos.Response;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -13,16 +15,20 @@ namespace SocialMedia.Repositories.Implementations
         private readonly SociaMediaContext _dbContext;
         private readonly IPost _post;
         private readonly IFriends _friend;
+        private readonly IPostService _postService;
 
-        public InfoUserRepository(IFriends friend, IPost post, IMapper mapper, SociaMediaContext dbContext) {
+        public InfoUserRepository(IPostService postService, IFriends friend, IPost post, IMapper mapper, SociaMediaContext dbContext) {
             _mapper = mapper;
             _dbContext = dbContext;
             _post = post;
             _friend = friend;
+            _postService = postService;
         }
         public bool CreateUser(InfoUser user)
         {
-            throw new NotImplementedException();
+            _dbContext.InfoUsers.Add(user);
+            _dbContext.SaveChanges();   
+            return true;
         }
 
         public bool DeleteUser(int id)
@@ -47,7 +53,7 @@ namespace SocialMedia.Repositories.Implementations
 
             if (idUser == LoginUserId)
             {
-                IEnumerable<PostResponse> listPostResponse = _post.GetAllPostInUser(idUser);
+                IEnumerable<PostResponse> listPostResponse = _postService.GetAllPostInUser(idUser,LoginUserId);
                 InfoUserResponse userResponse = _mapper.Map<InfoUserResponse>(userInfo);
                 userResponse.PostResponses = listPostResponse;
                 userResponse.isCurrentUser = true;
@@ -55,7 +61,7 @@ namespace SocialMedia.Repositories.Implementations
             }
             else
             {
-                IEnumerable<PostResponse> listPostResponse = _post.GetAllPostInUser(idUser);
+                IEnumerable<PostResponse> listPostResponse = _postService.GetAllPostInUser(idUser, LoginUserId);
                 InfoUserResponse userResponse = _mapper.Map<InfoUserResponse>(userInfo);
                 userResponse.PostResponses = listPostResponse;
                 userResponse.FriendStatus = _friend.GetFriendStatus(idUser, LoginUserId);
@@ -67,24 +73,15 @@ namespace SocialMedia.Repositories.Implementations
         public InfoUser GetUserById(int id)
         {
             InfoUser user = _dbContext.InfoUsers.SingleOrDefault(user => user.IdUser == id);
-
             return user;
         }
 
         public IEnumerable<ItemSearchUser> SearchUser(string searchString,InfoUser CurrentUser)
         {
-
-            IEnumerable<InfoUser> listUserInfo = _dbContext.InfoUsers.Where(inforUser => inforUser.UserName.Contains(searchString)).Take(10).ToImmutableArray().DefaultIfEmpty();
-            
+            IEnumerable<InfoUser> listUserInfo = _dbContext.InfoUsers.Where(inforUser => inforUser.UserName.Contains(searchString)).Take(10).ToImmutableArray().DefaultIfEmpty();            
             IEnumerable<ItemSearchUser> itemSearchUsers = _mapper.Map<IEnumerable<ItemSearchUser>>(listUserInfo);
-        
-            
-                return itemSearchUsers;
 
-            
-     
-            
-
+            return itemSearchUsers;
         }
 
         public bool UpdateUser(InfoUser user)

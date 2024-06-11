@@ -15,7 +15,7 @@ namespace SocialMedia.Hubs.ImplementHubs
 {
     public class PostHub : Hub
     {   
-        private readonly static Dictionary<int, string> _connectionMap = new Dictionary<int, string>();
+        public readonly static Dictionary<int, string> _connectionMap = new Dictionary<int, string>();
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IToken _token;
         private readonly IPost _post;
@@ -55,7 +55,7 @@ namespace SocialMedia.Hubs.ImplementHubs
         public override Task OnDisconnectedAsync(Exception? exception)
         {
             try
-          {
+            {
                 string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
                 int UserId = _token.getUserFromToken(token).IdUser;
 
@@ -119,26 +119,26 @@ namespace SocialMedia.Hubs.ImplementHubs
             try
             {
 
-            string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-            int UserId = _token.getUserFromToken(token).IdUser;
-            CommentPostResponse CommentPost = _commentPost.CreateCommentPost(commentPostRequest, UserId);
+                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+                int UserId = _token.getUserFromToken(token).IdUser;
+                CommentPostResponse CommentPost = _commentPost.CreateCommentPost(commentPostRequest, UserId);
 
 
-            // tạo thông báo khi addComment
-            int UserIdByPost = _post.GetPostInPost(CommentPost.IdPost).IdUser;
-            if (UserIdByPost != UserId)
-            {
-                // 3 là typeAddPostNotification
-                NotificationRequest notificationRequest = new NotificationRequest(UserIdByPost, 3, UserId, CommentPost.IdPost);
-                NotificationResponse newNotification = _notifications.CreateNotification(notificationRequest);
-                if (_connectionMap.ContainsKey(UserIdByPost))
+                // tạo thông báo khi addComment
+                int UserIdByPost = _post.GetPostInPost(CommentPost.IdPost).IdUser;
+                if (UserIdByPost != UserId)
                 {
-                    MainResponse mainResponseNotification = returnMainResponse(newNotification);
-                    string ConnectionIdByUserIdPost = _connectionMap[UserIdByPost];
-                    await Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveNotification", mainResponseNotification);
-                }
+                    // 3 là typeAddPostNotification
+                    NotificationRequest notificationRequest = new NotificationRequest(UserIdByPost, 3, UserId, CommentPost.IdPost);
+                    NotificationResponse newNotification = _notifications.CreateNotification(notificationRequest);
+                    if (_connectionMap.ContainsKey(UserIdByPost))
+                    {
+                        MainResponse mainResponseNotification = returnMainResponse(newNotification);
+                        string ConnectionIdByUserIdPost = _connectionMap[UserIdByPost];
+                        await Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveNotification", mainResponseNotification);
+                    }
             
-            }
+                }
             //Trả về
             MainResponse mainResponse = returnMainResponse(CommentPost);
             await Clients.Group(commentPostRequest.IdPost.ToString()).SendAsync("ReceiveCommentPost", mainResponse);
@@ -177,14 +177,10 @@ namespace SocialMedia.Hubs.ImplementHubs
                         var FriendResponseForFriend = _friends.GetFriend(UserId, idFriend);
                         MainResponse mainResponseFriendUpdateStateForFriend = returnMainResponse(FriendResponseForFriend);
                         await Clients.Client(ConnectionIdByUserIdPost).SendAsync("UpdateFriendState", mainResponseFriendUpdateStateForFriend);
-
                     }
-
                     var FriendResponse = _friends.GetFriend(idFriend, UserId);
                     MainResponse mainResponseFriendUpdateState = returnMainResponse(FriendResponse);
                     await Clients.Caller.SendAsync("UpdateFriendState", mainResponseFriendUpdateState);
-
-                
                 }
             }catch (Exception ex) { await Clients.Caller.SendAsync("MessageError", "Error :", ex.Message); }
 
@@ -198,7 +194,6 @@ namespace SocialMedia.Hubs.ImplementHubs
         {
             try
             {
-
                 string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
                 int UserId = _token.getUserFromToken(token).IdUser;
 
@@ -237,9 +232,7 @@ namespace SocialMedia.Hubs.ImplementHubs
                 NotificationFriendRequest notificationRequest = new NotificationFriendRequest(idFriend, 5, idUser);
                 NotificationResponse newNotification = _notifications.CreateNotification(notificationRequest);
                 
-                bool isUpdateFriendAcceptSuccess = _friends.UpdateStatusFriendRequest(idFriend,idUser);
-                
-                if (_connectionMap.ContainsKey(idFriend) && isUpdateFriendAcceptSuccess)
+                if (_connectionMap.ContainsKey(idFriend) )
                 {
                     MainResponse mainResponseNotification = returnMainResponse(newNotification);
                     string ConnectionIdByUserIdPost = _connectionMap[idFriend];
@@ -258,8 +251,7 @@ namespace SocialMedia.Hubs.ImplementHubs
                 NotificationFriendRequest notificationRequest = new NotificationFriendRequest(idFriend, 6, idUser);
                 NotificationResponse newNotification = _notifications.CreateNotification(notificationRequest);
 
-                bool isUpdateFriendRejectedSuccess = _friends.RemoveFriend(idFriend, idUser);
-                if (_connectionMap.ContainsKey(idFriend) && isUpdateFriendRejectedSuccess)
+                if (_connectionMap.ContainsKey(idFriend))
                 {
                     MainResponse mainResponseNotification = returnMainResponse(newNotification);
                     string ConnectionIdByUserIdPost = _connectionMap[idFriend];
@@ -289,6 +281,11 @@ namespace SocialMedia.Hubs.ImplementHubs
             };
 
             return mainResponse;
+        }
+        public async Task Test(string message,int idUser)
+        {   
+            string ConnectionIdByUserIdPost = _connectionMap[idUser];
+            await Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveTest", message);
         }
         
         

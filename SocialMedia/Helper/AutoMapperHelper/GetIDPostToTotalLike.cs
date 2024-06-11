@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using SocialMedia.Dtos.Respones;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.PostService.Dtos.Response;
 
 namespace SocialMedia.Helper.AutoMapperHelper
 {

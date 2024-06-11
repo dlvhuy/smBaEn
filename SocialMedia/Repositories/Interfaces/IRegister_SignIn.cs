@@ -1,7 +1,6 @@
 ﻿using SocialMedia.Dtos.Requests;
 using SocialMedia.Dtos.Respones;
-using SocialMedia.Helper.Enums;
-using SocialMedia.Models;
+
 
 namespace SocialMedia.Repositories.Interfaces
 {
