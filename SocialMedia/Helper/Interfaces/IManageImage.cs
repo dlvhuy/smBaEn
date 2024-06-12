@@ -1,4 +1,4 @@
-﻿using SocialMedia.Dtos.Requests;
+﻿using SocialMedia.Services.PostService.Dtos.Request;
 using System.Threading.Tasks;
 
 namespace SocialMedia.Helper.Interfaces

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using SocialMedia.Dtos.Respones;
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;

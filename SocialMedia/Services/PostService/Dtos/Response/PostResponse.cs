@@ -1,4 +1,5 @@
 ﻿using SocialMedia.Dtos.Respones;
+using SocialMedia.Services.CommentService.Dtos.Response;
 
 namespace SocialMedia.Services.PostService.Dtos.Response
 {

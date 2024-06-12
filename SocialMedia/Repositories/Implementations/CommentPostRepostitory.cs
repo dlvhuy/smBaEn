@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using AutoMapper.Configuration.Conventions;
-using SocialMedia.Dtos.Requests;
-using SocialMedia.Dtos.Respones;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.CommentService.Dtos.Request;
+using SocialMedia.Services.CommentService.Dtos.Response;
 using System.Collections.Immutable;
 
 namespace SocialMedia.Repositories.Implementations
@@ -21,7 +21,7 @@ namespace SocialMedia.Repositories.Implementations
         public CommentPostResponse CreateCommentPost(CommentPostRequest commentPostRequest,int IdUser)
         {
             try { 
-                CommentPost commentPost = _mapper.Map<CommentPost>(commentPostRequest);
+                var commentPost = _mapper.Map<CommentPost>(commentPostRequest);
                 commentPost.IdUser = IdUser;
                 if(commentPost == null)
                 {
@@ -30,8 +30,6 @@ namespace SocialMedia.Repositories.Implementations
                 _dbContext.CommentPosts.Add(commentPost);
                 _dbContext.SaveChanges();
 
-            
-            
                 return _mapper.Map<CommentPostResponse>(commentPost);
             }
             catch (Exception ex) { return null; }
@@ -81,9 +79,9 @@ namespace SocialMedia.Repositories.Implementations
 
         public IEnumerable<CommentPostResponse> GetCommentsPostInPost(int idPost)
         {
-           IEnumerable<CommentPost> listCommentPostInPost = _dbContext.CommentPosts.Where(commentPost => commentPost.IdPost == idPost).ToImmutableArray();
-
-            IEnumerable<CommentPostResponse> listCommentPostResponseInPost = _mapper.Map<IEnumerable<CommentPostResponse>>(listCommentPostInPost);
+            
+            var listCommentPostInPost = _dbContext.CommentPosts.Where(commentPost => commentPost.IdPost == idPost).ToImmutableArray();
+            var listCommentPostResponseInPost = _mapper.Map<IEnumerable<CommentPostResponse>>(listCommentPostInPost);
             return listCommentPostResponseInPost;
         }
 

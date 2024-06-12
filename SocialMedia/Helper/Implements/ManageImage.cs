@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.Features;
-using SocialMedia.Dtos.Requests;
 using SocialMedia.Helper.Interfaces;
+using SocialMedia.Services.PostService.Dtos.Request;
 using System.Net.Http;
 
 namespace SocialMedia.Helper.Implements

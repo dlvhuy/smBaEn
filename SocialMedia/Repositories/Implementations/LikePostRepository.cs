@@ -3,6 +3,7 @@ using SocialMedia.Dtos.Requests;
 using SocialMedia.Dtos.Respones;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.PostService.Dtos.Response;
 
 namespace SocialMedia.Repositories.Implementations
 {

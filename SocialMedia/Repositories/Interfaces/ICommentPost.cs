@@ -1,6 +1,6 @@
-﻿using SocialMedia.Dtos.Requests;
-using SocialMedia.Dtos.Respones;
-using SocialMedia.Models;
+﻿using SocialMedia.Models;
+using SocialMedia.Services.CommentService.Dtos.Request;
+using SocialMedia.Services.CommentService.Dtos.Response;
 
 namespace SocialMedia.Repositories.Interfaces
 {

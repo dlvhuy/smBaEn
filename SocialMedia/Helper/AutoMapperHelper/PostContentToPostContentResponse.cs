@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using SocialMedia.Dtos.Respones;
 using SocialMedia.Models;
 using SocialMedia.Services.PostService.Dtos.Response;
 

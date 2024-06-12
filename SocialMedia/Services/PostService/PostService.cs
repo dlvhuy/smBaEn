@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using SocialMedia.Dtos.Requests;
 using SocialMedia.Dtos.Respones;
-using SocialMedia.Hubs.ImplementHubs;
+using SocialMedia.Hubs;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
 using SocialMedia.Services.NotificationService;

@@ -6,17 +6,20 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.OpenApi.Models;
 using SocialMedia.Dtos.Requests;
 using SocialMedia.Dtos.Respones;
+using SocialMedia.Helper.AutoMapperHelper;
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
-
+using SocialMedia.Services.CommentService.Dtos.Request;
+using SocialMedia.Services.CommentService.Dtos.Response;
+using SocialMedia.Services.PostService.Dtos.Response;
 using System.Diagnostics.Eventing.Reader;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
-namespace SocialMedia.Hubs.ImplementHubs
+namespace SocialMedia.Hubs
 {
     public class PostHub : Hub
-    {   
+    {
         public readonly static Dictionary<int, string> _connectionMap = new Dictionary<int, string>();
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IToken _token;
@@ -27,7 +30,7 @@ namespace SocialMedia.Hubs.ImplementHubs
         private readonly INotifications _notifications;
         private readonly IFriends _friends;
         private readonly IHubContext<PostHub> _hubContext;
-        public PostHub(IHubContext<PostHub> hubContext, IFriends friends, INotifications notifications,ICommentPost commentPost,IMapper mapper,ILikePost likePost, IPost post, IHttpContextAccessor httpContextAccessor, IToken token)
+        public PostHub(IHubContext<PostHub> hubContext, IFriends friends, INotifications notifications, ICommentPost commentPost, IMapper mapper, ILikePost likePost, IPost post, IHttpContextAccessor httpContextAccessor, IToken token)
         {
             _hubContext = hubContext;
             _mapper = mapper;
@@ -50,7 +53,7 @@ namespace SocialMedia.Hubs.ImplementHubs
 
                 if (UserId != null && !_connectionMap.Any(user => user.Key == UserId)) _connectionMap.Add(UserId, Context.ConnectionId);
             }
-            catch (Exception ex) { Clients.Caller.SendAsync("onError", "OnDisconnected" + ex.Message);}
+            catch (Exception ex) { Clients.Caller.SendAsync("onError", "OnDisconnected" + ex.Message); }
 
             return base.OnConnectedAsync();
         }
@@ -70,19 +73,19 @@ namespace SocialMedia.Hubs.ImplementHubs
             return base.OnDisconnectedAsync(exception);
         }
 
-        
-        public async Task UpdateLikePostTest(int idUserCaller,int idPost ,LikePostResponse likePostResponse)
+
+        public async Task UpdateLikePostTest(int idUserCaller, int idPost, LikePostResponse likePostResponse)
         {
             MainResponse mainResponseCaller = returnMainResponse(likePostResponse);
             MainResponse mainResponseOthers = returnMainResponse(likePostResponse.TotalLikes);
 
             string ConnectionIdByUserIdPost = _connectionMap[idUserCaller];
-            await _hubContext.Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveMessageCaller", mainResponseCaller, idPost); 
+            await _hubContext.Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveMessageCaller", mainResponseCaller, idPost);
             await _hubContext.Clients.AllExcept(ConnectionIdByUserIdPost).SendAsync("ReceiveMessageOthers", mainResponseOthers, idPost);
-           
+
         }
 
-        public async Task SendNotification(int idUser,NotificationResponse newNotification)
+        public async Task SendNotification(int idUser, NotificationResponse newNotification)
         {
             if (_connectionMap.ContainsKey(idUser))
             {
@@ -91,40 +94,11 @@ namespace SocialMedia.Hubs.ImplementHubs
                 await _hubContext.Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveNotification", mainResponseNotification);
             }
         }
-
-        [Authorize]
-        public async Task AddCommentInPost(CommentPostRequest commentPostRequest)
+        public async Task SendCommentPostToPostGroup(int idPost, CommentPostResponse commentPostResponse)
         {
-            try
-            {
-
-                string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-                int UserId = _token.getUserFromToken(token).IdUser;
-                CommentPostResponse CommentPost = _commentPost.CreateCommentPost(commentPostRequest, UserId);
-
-
-                // tạo thông báo khi addComment
-                int UserIdByPost = _post.GetPostInPost(CommentPost.IdPost).IdUser;
-                if (UserIdByPost != UserId)
-                {
-                    // 3 là typeAddPostNotification
-                    NotificationRequest notificationRequest = new NotificationRequest(UserIdByPost, 3, UserId, CommentPost.IdPost);
-                    NotificationResponse newNotification = _notifications.CreateNotification(notificationRequest);
-                    if (_connectionMap.ContainsKey(UserIdByPost))
-                    {
-                        MainResponse mainResponseNotification = returnMainResponse(newNotification);
-                        string ConnectionIdByUserIdPost = _connectionMap[UserIdByPost];
-                        await Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveNotification", mainResponseNotification);
-                    }
-            
-                }
-            //Trả về
-            MainResponse mainResponse = returnMainResponse(CommentPost);
-            await Clients.Group(commentPostRequest.IdPost.ToString()).SendAsync("ReceiveCommentPost", mainResponse);
-            }
-            catch (Exception ex) { await Clients.Caller.SendAsync("MessageError", "Error :", ex.Message); }
+            MainResponse mainResponse = returnMainResponse(commentPostResponse);
+            await _hubContext.Clients.Group(idPost.ToString()).SendAsync("ReceiveCommentPost", mainResponse);
         }
-       
         public async Task TogleGroupCommentPost(GroupCommentPostRequest groupCommentPostRequest)
         {
             ///chưa kip reder lại nên isOpen ngược lại nên là nó bị ngược
@@ -132,7 +106,15 @@ namespace SocialMedia.Hubs.ImplementHubs
             else { await RemoveUserInGroupCommentPost(groupCommentPostRequest.idPost); }
 
         }
-        [Authorize]
+        private async Task AddUserInGroupCommentPost(int idPost)
+        {
+            await _hubContext.Groups.AddToGroupAsync(Context.ConnectionId, idPost.ToString());
+        }
+        private async Task RemoveUserInGroupCommentPost(int idPost)
+        {
+            await _hubContext.Groups.RemoveFromGroupAsync(Context.ConnectionId, idPost.ToString());
+        }
+
         public async Task SendFriendRequest(int idFriend)
         {
             try
@@ -161,15 +143,16 @@ namespace SocialMedia.Hubs.ImplementHubs
                     MainResponse mainResponseFriendUpdateState = returnMainResponse(FriendResponse);
                     await Clients.Caller.SendAsync("UpdateFriendState", mainResponseFriendUpdateState);
                 }
-            }catch (Exception ex) { await Clients.Caller.SendAsync("MessageError", "Error :", ex.Message); }
+            }
+            catch (Exception ex) { await Clients.Caller.SendAsync("MessageError", "Error :", ex.Message); }
 
         }
         // người nhận response là người gửi request == idUserResponse
         // người gửi response là người đã chấp nhận hoặc từ chới request là idUser bằng token
-       
-        
+
+
         [Authorize]
-        public async Task ResponseFriendRequest(int idUserResponse,bool isAccept)
+        public async Task ResponseFriendRequest(int idUserResponse, bool isAccept)
         {
             try
             {
@@ -177,15 +160,15 @@ namespace SocialMedia.Hubs.ImplementHubs
                 int UserId = _token.getUserFromToken(token).IdUser;
 
                 var deleteNotification = _notifications.DeleteNotificationbyPropeties(UserId, "friend_Request", idUserResponse);
-                if( deleteNotification  != null )
+                if (deleteNotification != null)
                 {
                     MainResponse mainResponseNotification = returnMainResponse(deleteNotification);
                     await Clients.Caller.SendAsync("ReceiveDeleteNotification", mainResponseNotification);
                 }
 
-                if (isAccept) { await RequestFriendAccepted(UserId, idUserResponse);}
-                else { await RequestFriendRejected(UserId, idUserResponse);}
-            
+                if (isAccept) { await RequestFriendAccepted(UserId, idUserResponse); }
+                else { await RequestFriendRejected(UserId, idUserResponse); }
+
                 var FriendResponse1 = _friends.GetFriend(idUserResponse, UserId);
                 MainResponse mainResponseFriendUpdateState1 = returnMainResponse(FriendResponse1);
                 await Clients.Caller.SendAsync("UpdateFriendState", mainResponseFriendUpdateState1);
@@ -194,15 +177,16 @@ namespace SocialMedia.Hubs.ImplementHubs
                 {
                     var FriendResponse2 = _friends.GetFriend(UserId, idUserResponse);
                     MainResponse mainResponseFriendUpdateState2 = returnMainResponse(FriendResponse2);
-                    await Clients.Client(_connectionMap[idUserResponse]).SendAsync("UpdateFriendState", mainResponseFriendUpdateState2); 
+                    await Clients.Client(_connectionMap[idUserResponse]).SendAsync("UpdateFriendState", mainResponseFriendUpdateState2);
                 }
 
-            } catch (Exception ex) { await Clients.Caller.SendAsync("MessageError", "Error :", ex.Message); }
+            }
+            catch (Exception ex) { await Clients.Caller.SendAsync("MessageError", "Error :", ex.Message); }
         }
 
 
         //cut
-        private async Task RequestFriendAccepted(int idUser,int idFriend)
+        private async Task RequestFriendAccepted(int idUser, int idFriend)
         {
             bool updateFriendSuccess = _friends.UpdateStatusFriendRequest(idFriend, idUser);
             if (updateFriendSuccess)
@@ -210,8 +194,8 @@ namespace SocialMedia.Hubs.ImplementHubs
                 // 5 là Friend Accepted
                 NotificationFriendRequest notificationRequest = new NotificationFriendRequest(idFriend, 5, idUser);
                 NotificationResponse newNotification = _notifications.CreateNotification(notificationRequest);
-                
-                if (_connectionMap.ContainsKey(idFriend) )
+
+                if (_connectionMap.ContainsKey(idFriend))
                 {
                     MainResponse mainResponseNotification = returnMainResponse(newNotification);
                     string ConnectionIdByUserIdPost = _connectionMap[idFriend];
@@ -238,19 +222,6 @@ namespace SocialMedia.Hubs.ImplementHubs
                 }
             }
         }
-        private async Task AddUserInGroupCommentPost(int idPost)
-        {
-            var listCommentPostResponse = _commentPost.GetCommentsPostInPost(idPost);
-            MainResponse mainResponse = returnMainResponse(listCommentPostResponse);
-            await Groups.AddToGroupAsync(Context.ConnectionId, idPost.ToString());
-            await Clients.Caller.SendAsync("ReceiveMessagePostCommentGroup", mainResponse);
-        }
-        private async Task RemoveUserInGroupCommentPost(int idPost)
-        {
-            MainResponse mainResponse = returnMainResponse(Array.Empty<PostContentResponse>);
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, idPost.ToString());
-            await Clients.Caller.SendAsync("ReceiveMessagePostCommentGroup", $"{Context.ConnectionId} Rời group: {idPost}.");
-        }
         private MainResponse returnMainResponse(object reponse)
         {
             MainResponse mainResponse = new MainResponse
@@ -261,12 +232,12 @@ namespace SocialMedia.Hubs.ImplementHubs
 
             return mainResponse;
         }
-        public async Task Test(string message,int idUser)
-        {   
+        public async Task Test(string message, int idUser)
+        {
             string ConnectionIdByUserIdPost = _connectionMap[idUser];
             await Clients.Client(ConnectionIdByUserIdPost).SendAsync("ReceiveTest", message);
         }
-        
-        
+
+
     }
 }

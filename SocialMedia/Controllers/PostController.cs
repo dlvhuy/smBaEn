@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using SocialMedia.Dtos.Respones;
 using SocialMedia.Helper.Interfaces;
-using SocialMedia.Hubs.ImplementHubs;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using SocialMedia.Models;
@@ -12,6 +11,7 @@ using SocialMedia.Repositories.Interfaces;
 using SocialMedia.Services.PostService.Dtos.Request;
 using SocialMedia.Services.PostService.Dtos.Response;
 using SocialMedia.Services.PostService;
+using SocialMedia.Hubs;
 
 namespace SocialMedia.Controllers
 {   // thêm tính năng hình ảnh 
@@ -34,19 +34,20 @@ namespace SocialMedia.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IToken _token;
         private readonly IPostService _postService;
-        private readonly PostHub _hub;
+        
        
-        public PostController(PostHub hub, IPostService postService,IHttpContextAccessor httpContextAccessor, IToken token)
+        public PostController(IPostService postService,IHttpContextAccessor httpContextAccessor, IToken token)
         { 
             _httpContextAccessor = httpContextAccessor;
             _token = token;
             _postService = postService;
-            _hub = hub;
+            
         }
+
 
         [HttpGet]
         [Authorize]
-        public IActionResult GetPosts() {
+        public IActionResult GetPostsInUser() {
             try
             {
                 string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
@@ -72,23 +73,9 @@ namespace SocialMedia.Controllers
             catch (Exception ex) { return BadRequest(ex); }
         }
 
-        //[HttpGet("{idPost}")]
-        //[Authorize]
-        //public IActionResult GetPost(int idPost)
-        //{
-        //    try
-        //    {
-        //        string token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-        //        int UserId = _token.getUserFromToken(token).IdUser;
-        //        var mainResponse = _postService.GetPost(UserId, idPost);
-
-        //        return Ok(mainResponse);
-        //    }
-        //    catch (Exception ex) { return BadRequest(ex); }
-        //}
         [HttpGet("{idPost}")]
         [Authorize]
-        public IActionResult Test(int idPost)
+        public IActionResult UpdateLikePost(int idPost)
         {
             try
             {

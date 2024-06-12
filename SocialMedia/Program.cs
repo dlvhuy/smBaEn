@@ -6,11 +6,12 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using SocialMedia.Helper.Implements;
 using SocialMedia.Helper.Interfaces;
-using SocialMedia.Hubs.ImplementHubs;
+using SocialMedia.Hubs;
 using SocialMedia.Models;
 using SocialMedia.Profiles;
 using SocialMedia.Repositories.Implementations;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.CommentService;
 using SocialMedia.Services.NotificationService;
 using SocialMedia.Services.PostService;
 using System.Runtime;
@@ -61,6 +62,7 @@ namespace SocialMedia
 
             //services
             builder.Services.AddTransient<INotificationService, NotificationService>();
+            builder.Services.AddTransient<ICommentPostService, CommentPostService>();
             builder.Services.AddTransient<IPostService, PostService>();
             //hubs
             builder.Services.AddTransient<IToken, Token>();
@@ -107,7 +109,8 @@ namespace SocialMedia
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
 
             app.UseStaticFiles(new StaticFileOptions

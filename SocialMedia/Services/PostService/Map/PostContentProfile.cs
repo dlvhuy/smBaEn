@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using SocialMedia.Dtos.Requests;
-using SocialMedia.Dtos.Respones;
 using SocialMedia.Helper.AutoMapperHelper;
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Models;
+using SocialMedia.Services.PostService.Dtos.Request;
+using SocialMedia.Services.PostService.Dtos.Response;
 
-namespace SocialMedia.Profiles
+namespace SocialMedia.Services.PostService.Map
 {
     public class PostContentProfile : Profile
     {
@@ -24,7 +24,7 @@ namespace SocialMedia.Profiles
             CreateMap<PostContent, PostContentResponse>()
                 .ForMember(dest => dest.IdPostContent, src => src.MapFrom(x => x.IdPostContent))
                 .ForMember(dest => dest.UrlimageVideo, src => src.MapFrom<GetImagePostContent>());
- 
+
         }
     }
 }

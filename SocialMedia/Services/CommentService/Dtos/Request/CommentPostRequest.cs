@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Dtos.Requests
+﻿namespace SocialMedia.Services.CommentService.Dtos.Request
 {
     public class CommentPostRequest
     {

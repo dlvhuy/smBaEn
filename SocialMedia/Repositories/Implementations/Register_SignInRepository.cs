@@ -15,7 +15,6 @@ namespace SocialMedia.Repositories.Implementations
         private readonly IToken _token;
         private readonly IInforUser _inforUser;
 
-
         public Register_SignInRepository(IInforUser inforUser, IToken token,SociaMediaContext sociaMedia,IMapper mapper) {
             _dbcontext = sociaMedia;
             _mapper = mapper;

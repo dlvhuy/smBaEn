@@ -20,10 +20,9 @@ namespace SocialMedia.Repositories.Implementations
         }
         public NotificationResponse CreateNotification(NotificationRequest notificationRequest)
         {
+            //khi có những thuộc tính chung thì sẽ update thời gian
             Notifications newNotification = _mapper.Map<Notifications>(notificationRequest);
-            if (_dbContext.Notifications.Any(x => x.IdItemRelative == newNotification.IdItemRelative && x.IdUserRelative == newNotification.IdUserRelative))
-                return null;
-
+             
             _dbContext.Notifications.Add(newNotification);
             _dbContext.SaveChanges();
 
@@ -34,12 +33,7 @@ namespace SocialMedia.Repositories.Implementations
         public NotificationResponse CreateNotification(NotificationFriendRequest notificationFriendRequest)
         {
             Notifications newNotification = _mapper.Map<Notifications>(notificationFriendRequest);
-            if (_dbContext.Notifications.Any(x =>
-            x.IdUser == newNotification.IdUser && 
-            x.TypeNotification.Equals(newNotification.TypeNotification) 
-            && x.IdUserRelative == notificationFriendRequest.IdUserRelative))
-                return null;
-
+           
             _dbContext.Notifications.Add(newNotification);
             _dbContext.SaveChanges();
 

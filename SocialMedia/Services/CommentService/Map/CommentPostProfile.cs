@@ -1,22 +1,23 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Routing.Constraints;
-using SocialMedia.Dtos.Requests;
-using SocialMedia.Dtos.Respones;
 using SocialMedia.Helper.AutoMapperHelper;
 using SocialMedia.Models;
+using SocialMedia.Services.CommentService.Dtos.Request;
+using SocialMedia.Services.CommentService.Dtos.Response;
 
-namespace SocialMedia.Profiles
+namespace SocialMedia.Services.CommentService.Map
 {
-    public class CommentPostProfile:Profile
+    public class CommentPostProfile : Profile
     {
-        public CommentPostProfile() {
+        public CommentPostProfile()
+        {
 
             CreateMap<CommentPostRequest, CommentPost>()
                 .ForMember(dest => dest.IdCommentPost, src => src.MapFrom(x => x.Equals(null)))
                 .ForMember(dest => dest.IdPost, src => src.MapFrom(x => x.IdPost))
                 .ForMember(dest => dest.ContentCommentPost, src => src.MapFrom(x => x.ContentCommentPost));
 
-            CreateMap<CommentPost,CommentPostResponse>()
+            CreateMap<CommentPost, CommentPostResponse>()
                 .ForMember(dest => dest.IdCommentPost, src => src.MapFrom(x => x.IdCommentPost))
                 .ForMember(dest => dest.IdPost, src => src.MapFrom(x => x.IdPost))
                 .ForMember(dest => dest.User, src => src.MapFrom<GetIDToUserInfo>())

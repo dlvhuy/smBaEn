@@ -25,10 +25,6 @@
     <Folder Include="Services\InfoUserService\Dtos\Response\" />
     <Folder Include="Services\InfoUserService\Implement\" />
     <Folder Include="Services\InfoUserService\Interface\" />
-    <Folder Include="Services\CommentService\Dtos\Request\" />
-    <Folder Include="Services\CommentService\Dtos\Response\" />
-    <Folder Include="Services\CommentService\Implement\" />
-    <Folder Include="Services\CommentService\Interface\" />
     <Folder Include="Services\FriendService\Dtos\Request\" />
     <Folder Include="Services\FriendService\Dtos\Response\" />
     <Folder Include="Services\FriendService\Implement\" />

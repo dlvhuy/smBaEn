@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Dtos.Requests
+﻿namespace SocialMedia.Services.PostService.Dtos.Request
 {
     public class PostContentRequest
     {

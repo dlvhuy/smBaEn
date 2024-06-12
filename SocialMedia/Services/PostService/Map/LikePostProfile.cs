@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using SocialMedia.Dtos.Requests;
 using SocialMedia.Models;
+using SocialMedia.Services.PostService.Dtos.Request;
 
-namespace SocialMedia.Profiles
+namespace SocialMedia.Services.PostService.Map
 {
     public class LikePostProfile : Profile
     {

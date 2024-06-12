@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using SocialMedia.Dtos.Requests;
-using SocialMedia.Dtos.Respones;
 using SocialMedia.Helper.Interfaces;
 using SocialMedia.Models;
 using SocialMedia.Repositories.Interfaces;
+using SocialMedia.Services.PostService.Dtos.Request;
+using SocialMedia.Services.PostService.Dtos.Response;
 using System.Collections.Immutable;
 
 namespace SocialMedia.Repositories.Implementations

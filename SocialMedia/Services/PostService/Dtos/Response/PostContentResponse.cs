@@ -1,4 +1,4 @@
-﻿namespace SocialMedia.Dtos.Respones
+﻿namespace SocialMedia.Services.PostService.Dtos.Response
 {
     public class PostContentResponse
     {

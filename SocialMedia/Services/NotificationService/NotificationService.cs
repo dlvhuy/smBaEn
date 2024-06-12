@@ -1,5 +1,5 @@
 ﻿using SocialMedia.Dtos.Requests;
-using SocialMedia.Hubs.ImplementHubs;
+using SocialMedia.Hubs;
 using SocialMedia.Repositories.Implementations;
 using SocialMedia.Repositories.Interfaces;
 
